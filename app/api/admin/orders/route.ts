@@ -2,6 +2,7 @@
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/dbConnect';
 
+
 export const GET = auth(async (req: any) => {
   if (!req.auth || !req.auth.user?.isAdmin) {
     return Response.json(
