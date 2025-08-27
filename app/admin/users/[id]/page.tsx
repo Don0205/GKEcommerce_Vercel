@@ -1,18 +1,22 @@
-//app\admin\users\[id]\page.tsx
+// app\admin\users\[id]\page.tsx
 import AdminLayout from '@/components/admin/AdminLayout';
 
 import Form from './Form';
 
-export function generateMetadata({ params }: { params: { id: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   return {
-    title: `Edit User ${params.id}`,
+    title: `Edit User ${resolvedParams.id}`,
   };
 }
 
-export default function UserEditPage({ params }: { params: { id: string } }) {
+async function UserEditPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   return (
     <AdminLayout activeItem='users'>
-      <Form userId={params.id} />
+      <Form userId={resolvedParams.id} />
     </AdminLayout>
   );
 }
+
+export default UserEditPage;

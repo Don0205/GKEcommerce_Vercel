@@ -2,7 +2,8 @@
 import withPlaiceholder from '@plaiceholder/next';
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {// 新增這行來優化 Vercel 部署，解決數據收集問題
+const nextConfig = {
+  output: 'standalone', // 新增這行來優化 Vercel 部署，解決數據收集問題
   images: {
     remotePatterns: [
       {
@@ -24,4 +25,4 @@ const nextConfig = {// 新增這行來優化 Vercel 部署，解決數據收集�
   // },
 };
 
-export default withPlaiceholder(nextConfig);
+export default nextConfig;

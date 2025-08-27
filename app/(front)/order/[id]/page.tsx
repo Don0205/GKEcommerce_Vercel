@@ -1,17 +1,18 @@
-//app\(front)\order\[id]\page.tsx
 import OrderDetails from './OrderDetails';
 
-export const generateMetadata = ({ params }: { params: { id: string } }) => {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   return {
-    title: `Order ${params.id}`,
+    title: `Order ${resolvedParams.id}`,
   };
 };
 
-const OrderDetailsPage = ({ params }: { params: { id: string } }) => {
+async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   return (
     <OrderDetails
       paypalClientId={process.env.PAYPAL_CLIENT_ID || 'sb'}
-      orderId={params.id}
+      orderId={resolvedParams.id}
     />
   );
 };

@@ -1,4 +1,4 @@
-//app\(front)\product\[slug]\page.tsx
+// app\(front)\product\[slug]\page.tsx
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -9,22 +9,25 @@ import { Rating } from '@/components/products/Rating';
 import productService from '@/lib/services/productService';
 import { convertDocToObj } from '@/lib/utils';
 
-export const generateMetadata = async ({
+export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: { price?: string };
-}) => {
-  if (params.slug === 'blind-box') {
-    const price = searchParams.price ? parseFloat(searchParams.price) : 0;
+  params: Promise<{ slug: string }>; // 已正確
+  searchParams: Promise<{ price?: string | undefined }>; // 更新為 Promise 類型
+}) {
+  const resolvedParams = await params; // await 解析 params
+  const resolvedSearchParams = await searchParams; // await 解析 searchParams
+
+  if (resolvedParams.slug === 'blind-box') {
+    const price = resolvedSearchParams.price ? parseFloat(resolvedSearchParams.price) : 0;
     return {
       title: '盲盒',
       description: `這是一個盲盒產品，價格為 ${price}`,
     };
   }
 
-  const product = await productService.getBySlug(params.slug);
+  const product = await productService.getBySlug(resolvedParams.slug);
 
   if (!product) {
     return notFound();
@@ -36,17 +39,20 @@ export const generateMetadata = async ({
   };
 };
 
-const ProductPage = async ({
+async function ProductPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: { price?: string };
-}) => {
+  params: Promise<{ slug: string }>; // 已正確
+  searchParams: Promise<{ price?: string | undefined }>; // 更新為 Promise 類型
+}) {
+  const resolvedParams = await params; // await 解析 params
+  const resolvedSearchParams = await searchParams; // await 解析 searchParams
+
   let product;
 
-  if (params.slug === 'blind-box') {
-    const inputPrice = searchParams.price ? parseFloat(searchParams.price) : 0;
+  if (resolvedParams.slug === 'blind-box') {
+    const inputPrice = resolvedSearchParams.price ? parseFloat(resolvedSearchParams.price) : 0;
 
     if (isNaN(inputPrice) || inputPrice <= 0) {
       return notFound(); // 如果價格無效，顯示 404
@@ -68,7 +74,7 @@ const ProductPage = async ({
       banner: null,
     };
   } else {
-    product = await productService.getBySlug(params.slug);
+    product = await productService.getBySlug(resolvedParams.slug);
 
     if (!product) {
       return notFound();

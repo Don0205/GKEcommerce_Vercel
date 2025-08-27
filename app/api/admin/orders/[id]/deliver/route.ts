@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // 強制動態渲染，避免靜態收集錯誤
+
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/dbConnect';
 

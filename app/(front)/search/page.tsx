@@ -24,17 +24,20 @@ const prices = [
 const ratings = [5, 4, 3, 2, 1];
 
 export async function generateMetadata({
-  searchParams: { q = 'all', category = 'all', price = 'all', rating = 'all' },
+  searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     q: string;
     category: string;
     price: string;
     rating: string;
     sort: string;
     page: string;
-  };
+  }>; // 更新為 Promise 類型
 }) {
+  const resolvedSearchParams = await searchParams; // await 解析 searchParams
+  const { q = 'all', category = 'all', price = 'all', rating = 'all' } = resolvedSearchParams;
+
   if (
     (q !== 'all' && q !== '') ||
     category !== 'all' ||
@@ -55,24 +58,27 @@ export async function generateMetadata({
 }
 
 export default async function SearchPage({
-  searchParams: {
-    q = 'all',
-    category = 'all',
-    price = 'all',
-    rating = 'all',
-    sort = 'newest',
-    page = '1',
-  },
+  searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     q: string;
     category: string;
     price: string;
     rating: string;
     sort: string;
     page: string;
-  };
+  }>; // 更新為 Promise 類型
 }) {
+  const resolvedSearchParams = await searchParams; // await 解析 searchParams
+  const {
+    q = 'all',
+    category = 'all',
+    price = 'all',
+    rating = 'all',
+    sort = 'newest',
+    page = '1',
+  } = resolvedSearchParams;
+
   const getFilterUrl = ({
     c,
     s,
