@@ -1,0 +1,6175 @@
+//app\(front)\cart\CartDetails.tsx
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import useCartService from '@/lib/hooks/useCartStore';
+
+const CartDetails = () => {
+  const { items, itemsPrice, decrease, increase } = useCartService();
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, [items, itemsPrice, decrease, increase]);
+
+  if (!mounted) return <>Loading...</>;
+
+  return (
+    <div>
+      <h1 className='py-4 text-2xl'>Shopping Cart</h1>
+      {items.length === 0 ? (
+        <div>
+          <p className='mb-2'>Cart is empty :(</p>
+          <Link href='/' className='btn'>
+            Go shopping
+          </Link>
+        </div>
+      ) : (
+        <div className='grid md:grid-cols-4 md:gap-5'>
+          <div className='overflow-x-auto md:col-span-3'>
+            <table className='table'>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.slug}>
+                    <td className='flex items-center'>
+                      <Link
+                        href={`/product/${item.slug}`}
+                        className='flex items-center'
+                      >
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          width={50}
+                          height={50}
+                        />
+                      </Link>
+                      <span className='px-2'>{item.name}</span>
+                    </td>
+                    <td>
+                      <div>
+                        <button
+                          className='btn'
+                          type='button'
+                          onClick={() => decrease(item)}
+                        >
+                          -
+                        </button>
+                        <span className='px-2'>{item.qty}</span>
+                        <button
+                          className='btn'
+                          type='button'
+                          onClick={() => increase(item)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+                    <td>$ {item.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className='card' bg-base-300>
+            <div className='card-body'>
+              <ul>
+                <li className='pb-3 text-xl'>
+                  Subtotal: {items.reduce((acc, item) => acc + item.qty, 0)}:
+                  <br />$ {itemsPrice}
+                </li>
+                <li>
+                  <button
+                    type='button'
+                    className='btn btn-primary w-full'
+                    onClick={() => router.push('/shipping')}
+                  >
+                    Proceed to Checkout
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CartDetails;
+
+
+//app\(front)\cart\page.tsx
+import { Metadata } from 'next';
+
+import CartDetails from './CartDetails';
+
+export const metadata: Metadata = {
+  title: 'Shopping Cart',
+};
+
+const CartPage = () => {
+  return (
+    <div>
+      <CartDetails />
+    </div>
+  );
+};
+
+export default CartPage;
+
+
+//app\(front)\order\[id]\OrderDetails.tsx
+'use client';
+
+import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+
+import { OrderItem } from '@/lib/models/OrderModel';
+
+interface IOrderDetails {
+  orderId: string;
+  paypalClientId: string;
+}
+
+const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
+  const { data: session } = useSession();
+
+  const { trigger: deliverOrder, isMutating: isDelivering } = useSWRMutation(
+    `/api/orders/${orderId}`,
+    async (url) => {
+      const res = await fetch(`/api/admin/orders/${orderId}/deliver`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await res.json();
+      res.ok
+        ? toast.success('Order delivered successfully')
+        : toast.error(data.message);
+    },
+  );
+
+  function createPayPalOrder() {
+    return fetch(`/api/orders/${orderId}/create-paypal-order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((response) => response.json())
+      .then((order) => order.id);
+  }
+
+  function onApprovePayPalOrder(data: any) {
+    return fetch(`/api/orders/${orderId}/capture-paypal-order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((orderData) => {
+        toast.success('Order paid successfully');
+      });
+  }
+
+  const { data, error } = useSWR(`/api/orders/${orderId}`);
+
+  if (error) return error.message;
+  if (!data) return 'Loading...';
+
+  const {
+    paymentMethod,
+    shippingAddress,
+    items,
+    itemsPrice,
+    taxPrice,
+    shippingPrice,
+    totalPrice,
+    isDelivered,
+    deliveredAt,
+    isPaid,
+    paidAt,
+  } = data;
+
+  return (
+    <div>
+      <h1 className='py-4 text-2xl'>Order {orderId}</h1>
+      <div className='my-4 grid md:grid-cols-4 md:gap-5'>
+        <div className='md:col-span-3'>
+          <div className='card bg-base-300'>
+            <div className='card-body'>
+              <h2 className='card-title'>Shipping Address</h2>
+              <p>{shippingAddress.fullName}</p>
+              <p>
+                {shippingAddress.address}, {shippingAddress.city},{' '}
+                {shippingAddress.postalCode}, {shippingAddress.country}{' '}
+              </p>
+              {isDelivered ? (
+                <div className='text-success'>Delivered at {deliveredAt}</div>
+              ) : (
+                <div className='text-error'>Not Delivered</div>
+              )}
+            </div>
+          </div>
+
+          <div className='card mt-4 bg-base-300'>
+            <div className='card-body'>
+              <h2 className='card-title'>Payment Method</h2>
+              <p>{paymentMethod}</p>
+              {isPaid ? (
+                <div className='text-success'>Paid at {paidAt}</div>
+              ) : (
+                <div className='text-error'>Not Paid</div>
+              )}
+            </div>
+          </div>
+
+          <div className='card mt-4 bg-base-300'>
+            <div className='card-body'>
+              <h2 className='card-title'>Items</h2>
+              <table className='table'>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item: OrderItem) => (
+                    <tr key={item.slug}>
+                      <td>
+                        <Link
+                          href={`/product/${item.slug}`}
+                          className='flex items-center'
+                        >
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            width={50}
+                            height={50}
+                          ></Image>
+                          <span className='px-2'>
+                            {item.name} ({item.color} {item.size})
+                          </span>
+                        </Link>
+                      </td>
+                      <td>{item.qty}</td>
+                      <td>${item.price}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className='card bg-base-300'>
+            <div className='card-body'>
+              <h2 className='card-title'>Order Summary</h2>
+              <ul>
+                <li>
+                  <div className='mb-2 flex justify-between'>
+                    <div>Items</div>
+                    <div>${itemsPrice}</div>
+                  </div>
+                </li>
+                <li>
+                  <div className='mb-2 flex justify-between'>
+                    <div>Tax</div>
+                    <div>${taxPrice}</div>
+                  </div>
+                </li>
+                <li>
+                  <div className='mb-2 flex justify-between'>
+                    <div>Shipping</div>
+                    <div>${shippingPrice}</div>
+                  </div>
+                </li>
+                <li>
+                  <div className='mb-2 flex justify-between'>
+                    <div>Total</div>
+                    <div>${totalPrice}</div>
+                  </div>
+                </li>
+
+                {!isPaid && paymentMethod === 'PayPal' && (
+                  <li>
+                    <PayPalScriptProvider
+                      options={{ clientId: paypalClientId }}
+                    >
+                      <PayPalButtons
+                        createOrder={createPayPalOrder}
+                        onApprove={onApprovePayPalOrder}
+                      />
+                    </PayPalScriptProvider>
+                  </li>
+                )}
+                {session?.user.isAdmin && (
+                  <li>
+                    <button
+                      className='btn my-2 w-full'
+                      onClick={() => deliverOrder()}
+                      disabled={isDelivering}
+                    >
+                      {isDelivering && (
+                        <span className='loading loading-spinner'></span>
+                      )}
+                      Mark as delivered
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrderDetails;
+
+
+//app\(front)\order\[id]\page.tsx
+import OrderDetails from './OrderDetails';
+
+export const generateMetadata = ({ params }: { params: { id: string } }) => {
+  return {
+    title: `Order ${params.id}`,
+  };
+};
+
+const OrderDetailsPage = ({ params }: { params: { id: string } }) => {
+  return (
+    <OrderDetails
+      paypalClientId={process.env.PAYPAL_CLIENT_ID || 'sb'}
+      orderId={params.id}
+    />
+  );
+};
+
+export default OrderDetailsPage;
+
+
+//app\(front)\order-history\MyOrders.tsx
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import React from 'react';
+import useSWR from 'swr';
+
+import { Order } from '@/lib/models/OrderModel';
+
+const MyOrders = () => {
+  const router = useRouter();
+  const { data: orders, error, isLoading } = useSWR('/api/orders/mine');
+
+  if (error) return <>An error has occurred</>;
+  if (isLoading) return <>Loading...</>;
+  if (!orders) return <>No orders...</>;
+
+  return (
+    <div className='overflow-x-auto'>
+      <table className='table'>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>DATE</th>
+            <th>TOTAL</th>
+            <th>PAID</th>
+            <th>DELIVERED</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order: Order) => (
+            <tr key={order._id}>
+              <td>{order._id.substring(20, 24)}</td>
+              <td className='whitespace-nowrap'>
+                {order.createdAt.substring(0, 10)}
+              </td>
+              <td>${order.totalPrice}</td>
+              <td>
+                {order.isPaid && order.paidAt
+                  ? `${order.paidAt.substring(0, 10)}`
+                  : 'not paid'}
+              </td>
+              <td>
+                {order.isDelivered && order.deliveredAt
+                  ? `${order.deliveredAt.substring(0, 10)}`
+                  : 'not delivered'}
+              </td>
+              <td>
+                <Link href={`/order/${order._id}`} passHref>
+                  Details
+                </Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default MyOrders;
+
+
+//app\(front)\order-history\page.tsx
+import { Metadata } from 'next';
+import React from 'react';
+
+import MyOrders from './MyOrders';
+
+export const metadata: Metadata = {
+  title: 'Order History',
+};
+
+const MyOrderPage = () => {
+  return (
+    <div>
+      <h1 className='py-2 text-2xl'>Order History</h1>
+      <MyOrders />
+    </div>
+  );
+};
+
+export default MyOrderPage;
+
+//app\(front)\payment\Form.tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import CheckoutSteps from '@/components/checkout/CheckoutSteps';
+import useCartService from '@/lib/hooks/useCartStore';
+
+const Form = () => {
+  const router = useRouter();
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+
+  const { savePaymentMethod, paymentMethod, shippingAddress } =
+    useCartService();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    savePaymentMethod(selectedPaymentMethod);
+    router.push('/place-order');
+  };
+
+  useEffect(() => {
+    if (!shippingAddress) {
+      return router.push('/shipping');
+    }
+    setSelectedPaymentMethod(paymentMethod || 'PayPal');
+  }, [paymentMethod, router, shippingAddress]);
+
+  return (
+    <div>
+      <CheckoutSteps current={2} />
+      <div className='card mx-auto my-4 max-w-sm bg-base-300'>
+        <div className='card-body'>
+          <h1 className='card-title'>Payment Method</h1>
+          <form onSubmit={handleSubmit}>
+            {['PayPal', 'Stripe', 'CashOnDelivery'].map((payment) => (
+              <div key={payment}>
+                <label className='label cursor-pointer'>
+                  <span className='label-text'>{payment}</span>
+                  <input
+                    type='radio'
+                    name='paymentMethod'
+                    className='radio'
+                    value={payment}
+                    checked={selectedPaymentMethod === payment}
+                    onChange={() => setSelectedPaymentMethod(payment)}
+                  />
+                </label>
+              </div>
+            ))}
+            <div className='my-2'>
+              <button type='submit' className='btn btn-primary w-full'>
+                Next
+              </button>
+            </div>
+            <div className='my-2'>
+              <button
+                type='button'
+                className='btn my-2 w-full'
+                onClick={() => router.back()}
+              >
+                Back
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+export default Form;
+
+
+//app\(front)\payment\page.tsx
+import { Metadata } from 'next';
+
+import Form from './Form';
+
+export const metadata: Metadata = {
+  title: 'Payment method',
+};
+
+const PaymentPage = async () => {
+  return (
+    <div>
+      <Form />
+    </div>
+  );
+};
+
+export default PaymentPage;
+
+
+//app\(front)\place-order\Form.tsx
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import useSWRMutation from 'swr/mutation';
+
+import CheckoutSteps from '@/components/checkout/CheckoutSteps';
+import useCartService from '@/lib/hooks/useCartStore';
+
+const Form = () => {
+  const router = useRouter();
+  const {
+    paymentMethod,
+    shippingAddress,
+    items,
+    itemsPrice,
+    taxPrice,
+    shippingPrice,
+    totalPrice,
+    clear,
+  } = useCartService();
+
+  // mutate data in the backend by calling trigger function
+  const { trigger: placeOrder, isMutating: isPlacing } = useSWRMutation(
+    `/api/orders/mine`,
+    async (url) => {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          paymentMethod,
+          shippingAddress,
+          items,
+          itemsPrice,
+          taxPrice,
+          shippingPrice,
+          totalPrice,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        clear();
+        toast.success('Order placed successfully');
+        return router.push(`/order/${data.order._id}`);
+      } else {
+        toast.error(data.message);
+      }
+    },
+  );
+
+  useEffect(() => {
+    if (!paymentMethod) {
+      return router.push('/payment');
+    }
+    if (items.length === 0) {
+      return router.push('/');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentMethod, router]);
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <>Loading...</>;
+
+  return (
+    <div>
+      <CheckoutSteps current={4} />
+
+      <div className='my-4 grid md:grid-cols-4 md:gap-5'>
+        <div className='overflow-x-auto md:col-span-3'>
+          <div className='card bg-base-300'>
+            <div className='card-body'>
+              <h2 className='card-title'>Shipping Address</h2>
+              <p>{shippingAddress.fullName}</p>
+              <p>
+                {shippingAddress.address}, {shippingAddress.city},{' '}
+                {shippingAddress.postalCode}, {shippingAddress.country}{' '}
+              </p>
+              <div>
+                <Link className='btn' href='/shipping'>
+                  Edit
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className='card mt-4 bg-base-300'>
+            <div className='card-body'>
+              <h2 className='card-title'>Payment Method</h2>
+              <p>{paymentMethod}</p>
+              <div>
+                <Link className='btn' href='/payment'>
+                  Edit
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className='card mt-4 bg-base-300'>
+            <div className='card-body'>
+              <h2 className='card-title'>Items</h2>
+              <table className='table'>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr key={item.slug}>
+                      <td>
+                        <Link
+                          href={`/product/${item.slug}`}
+                          className='flex items-center'
+                        >
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            width={50}
+                            height={50}
+                          ></Image>
+                          <span className='px-2'>
+                            {item.name}({item.color} {item.size})
+                          </span>
+                        </Link>
+                      </td>
+                      <td>
+                        <span>{item.qty}</span>
+                      </td>
+                      <td>${item.price}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div>
+                <Link className='btn' href='/cart'>
+                  Edit
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className='card bg-base-300'>
+            <div className='card-body'>
+              <h2 className='card-title'>Order Summary</h2>
+              <ul className='space-y-3'>
+                <li>
+                  <div className=' flex justify-between'>
+                    <div>Items</div>
+                    <div>${itemsPrice}</div>
+                  </div>
+                </li>
+                <li>
+                  <div className=' flex justify-between'>
+                    <div>Tax</div>
+                    <div>${taxPrice}</div>
+                  </div>
+                </li>
+                <li>
+                  <div className=' flex justify-between'>
+                    <div>Shipping</div>
+                    <div>${shippingPrice}</div>
+                  </div>
+                </li>
+                <li>
+                  <div className=' flex justify-between'>
+                    <div>Total</div>
+                    <div>${totalPrice}</div>
+                  </div>
+                </li>
+
+                <li>
+                  <button
+                    onClick={() => placeOrder()}
+                    disabled={isPlacing}
+                    className='btn btn-primary w-full'
+                  >
+                    {isPlacing && (
+                      <span className='loading loading-spinner'></span>
+                    )}
+                    Place Order
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Form;
+
+
+//app\(front)\place-order\page.tsx
+import { Metadata } from 'next';
+
+import Form from './Form';
+
+export const metadata: Metadata = {
+  title: 'Place order',
+};
+
+const PlaceOrderPage = () => {
+  return (
+    <div>
+      <Form />
+    </div>
+  );
+};
+
+export default PlaceOrderPage;
+
+
+//app\(front)\product\[slug]\page.tsx
+import Image from 'next/image';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { getPlaiceholder } from 'plaiceholder';
+
+import AddToCart from '@/components/products/AddToCart';
+import { Rating } from '@/components/products/Rating';
+import productService from '@/lib/services/productService';
+import { convertDocToObj } from '@/lib/utils';
+
+export const generateMetadata = async ({
+  params,
+}: {
+  params: { slug: string };
+}) => {
+  const product = await productService.getBySlug(params.slug);
+
+  if (!product) {
+    return notFound();
+  }
+
+  return {
+    title: product.name,
+    description: product.description,
+  };
+};
+
+const ProductPage = async ({ params }: { params: { slug: string } }) => {
+  const product = await productService.getBySlug(params.slug);
+
+  if (!product) {
+    return notFound();
+  }
+
+  const buffer = await fetch(product.image).then(async (res) =>
+    Buffer.from(await res.arrayBuffer()),
+  );
+
+  const { base64 } = await getPlaiceholder(buffer);
+
+  return (
+    <div className='my-2'>
+      <div className='my-4'>
+        <Link href='/' className='btn'>{`<- Back to Products`}</Link>
+      </div>
+      <div className='grid gap-4 md:grid-cols-4'>
+        <div className='relative aspect-square md:col-span-2'>
+          <Image
+            src={product.image}
+            alt={product.name}
+            placeholder='blur'
+            blurDataURL={base64}
+            width={640}
+            height={640}
+            sizes='100vw'
+            className='h-full w-full object-contain'
+          />
+        </div>
+        <div>
+          <ul className='space-y-4'>
+            <li>
+              <h1 className='text-xl'>{product.name}</h1>
+            </li>
+            <li>
+              <Rating
+                value={product.rating}
+                caption={`${product.numReviews} ratings`}
+              />
+            </li>
+            <li>{product.brand}</li>
+            <li>
+              <div className='divider'></div>
+            </li>
+            <li>
+              <p>Description: {product.description}</p>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <div className='card mt-3 bg-base-300 shadow-xl md:mt-0'>
+            <div className='card-body'>
+              <div className='flex justify-between'>
+                <div>Price</div>
+                <div>${product.price}</div>
+              </div>
+              <div className='mb-2 flex justify-between'>
+                <div>Status</div>
+                <div>
+                  {product.countInStock > 0 ? 'In Stock' : 'Unavailable'}
+                </div>
+              </div>
+              {product.countInStock !== 0 && (
+                <div className='card-actions justify-center'>
+                  <AddToCart
+                    item={{
+                      ...convertDocToObj(product),
+                      qty: 0,
+                      color: '',
+                      size: '',
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductPage;
+
+
+//app\(front)\profile\Form.tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+
+type Inputs = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
+
+const Form = () => {
+  const { data: session, update } = useSession();
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<Inputs>({
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
+  });
+
+  useEffect(() => {
+    if (session && session.user) {
+      setValue('name', session.user.name!);
+      setValue('email', session.user.email!);
+    }
+  }, [router, session, setValue]);
+
+  const formSubmit: SubmitHandler<Inputs> = async (form) => {
+    const { name, email, password } = form;
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      });
+      if (res.status === 200) {
+        toast.success('Profile updated successfully');
+        const newSession = {
+          ...session,
+          user: {
+            ...session?.user,
+            name,
+            email,
+          },
+        };
+        await update(newSession);
+      } else {
+        const data = await res.json();
+        toast.error(data.message || 'error');
+      }
+    } catch (err: any) {
+      const error =
+        err.response && err.response.data && err.response.data.message
+          ? err.response.data.message
+          : err.message;
+      toast.error(error);
+    }
+  };
+
+  return (
+    <div className='card mx-auto my-4 max-w-sm bg-base-300'>
+      <div className='card-body'>
+        <h1 className='card-title'>Profile</h1>
+        <form onSubmit={handleSubmit(formSubmit)}>
+          <div className='my-2'>
+            <label className='label' htmlFor='name'>
+              Name
+            </label>
+            <input
+              type='text'
+              id='name'
+              {...register('name', {
+                required: 'Name is required',
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.name?.message && (
+              <div className='text-error'>{errors.name.message}</div>
+            )}
+          </div>
+          <div className='my-2'>
+            <label className='label' htmlFor='email'>
+              Email
+            </label>
+            <input
+              type='text'
+              id='email'
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
+                  message: 'Email is invalid',
+                },
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.email?.message && (
+              <div className='text-error'>{errors.email.message}</div>
+            )}
+          </div>
+          <div className='my-2'>
+            <label className='label' htmlFor='password'>
+              New Password
+            </label>
+            <input
+              type='password'
+              id='password'
+              {...register('password', {})}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.password?.message && (
+              <div className='text-error'>{errors.password.message}</div>
+            )}
+          </div>
+          <div className='my-2'>
+            <label className='label' htmlFor='confirmPassword'>
+              Confirm New Password
+            </label>
+            <input
+              type='password'
+              id='confirmPassword'
+              {...register('confirmPassword', {
+                validate: (value) => {
+                  const { password } = getValues();
+                  return password === value || 'Passwords should match!';
+                },
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.confirmPassword?.message && (
+              <div className='text-error'>{errors.confirmPassword.message}</div>
+            )}
+          </div>
+
+          <div className='my-2'>
+            <button
+              type='submit'
+              disabled={isSubmitting}
+              className='btn btn-primary w-full'
+            >
+              {isSubmitting && (
+                <span className='loading loading-spinner'></span>
+              )}
+              Update
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Form;
+
+
+//app\(front)\profile\page.tsx
+import { Metadata } from 'next';
+import React from 'react';
+
+import Form from './Form';
+
+export const metadata: Metadata = {
+  title: 'Profile',
+};
+
+const ProfilePage = async () => {
+  return (
+    <div>
+      <Form />
+    </div>
+  );
+};
+
+export default ProfilePage;
+
+
+//app\(front)\register\Form.tsx
+'use client';
+
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+
+type Inputs = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
+
+const Form = () => {
+  const { data: session } = useSession();
+
+  const params = useSearchParams();
+  const router = useRouter();
+  let callbackUrl = params.get('callbackUrl') || '/';
+
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = useForm<Inputs>({
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  useEffect(() => {
+    if (session && session.user) {
+      router.push(callbackUrl);
+    }
+  }, [callbackUrl, params, router, session]);
+
+  const formSubmit: SubmitHandler<Inputs> = async (form) => {
+    const { name, email, password } = form;
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      });
+      if (res.ok) {
+        return router.push(
+          `/signin?callbackUrl=${callbackUrl}&success=Account has been created`,
+        );
+      } else {
+        const data = await res.json();
+        throw new Error(data.message);
+      }
+    } catch (err: any) {
+      const error =
+        err.message && err.message.indexOf('E11000') === 0
+          ? 'Email is duplicate'
+          : err.message;
+      toast.error(error || 'error');
+    }
+  };
+
+  return (
+    <div className='card mx-auto my-4 max-w-sm bg-base-300'>
+      <div className='card-body'>
+        <h1 className='card-title'>Register</h1>
+        <form onSubmit={handleSubmit(formSubmit)}>
+          <div className='my-2'>
+            <label className='label' htmlFor='name'>
+              Name
+            </label>
+            <input
+              type='text'
+              id='name'
+              {...register('name', {
+                required: 'Name is required',
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.name?.message && (
+              <div className='text-error'>{errors.name.message}</div>
+            )}
+          </div>
+          <div className='my-2'>
+            <label className='label' htmlFor='email'>
+              Email
+            </label>
+            <input
+              type='text'
+              id='email'
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
+                  message: 'Email is invalid',
+                },
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.email?.message && (
+              <div className='text-error'> {errors.email.message}</div>
+            )}
+          </div>
+          <div className='my-2'>
+            <label className='label' htmlFor='password'>
+              Password
+            </label>
+            <input
+              type='password'
+              id='password'
+              {...register('password', {
+                required: 'Password is required',
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.password?.message && (
+              <div className='text-error'>{errors.password.message}</div>
+            )}
+          </div>
+          <div className='my-2'>
+            <label className='label' htmlFor='confirmPassword'>
+              Confirm Password
+            </label>
+            <input
+              type='password'
+              id='confirmPassword'
+              {...register('confirmPassword', {
+                required: 'Confirm Password is required',
+                validate: (value) => {
+                  const { password } = getValues();
+                  return password === value || 'Passwords should match!';
+                },
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.confirmPassword?.message && (
+              <div className='text-error'>{errors.confirmPassword.message}</div>
+            )}
+          </div>
+          <div className='my-2'>
+            <button
+              type='submit'
+              disabled={isSubmitting}
+              className='btn btn-primary w-full'
+            >
+              {isSubmitting && (
+                <span className='loading loading-spinner'></span>
+              )}
+              Register
+            </button>
+          </div>
+        </form>
+
+        <div className='divider'> </div>
+        <div>
+          Already have an account?{' '}
+          <Link className='link' href={`/signin?callbackUrl=${callbackUrl}`}>
+            Login
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Form;
+
+
+//app\(front)\register\page.tsx
+import { Metadata } from 'next';
+
+import Form from './Form';
+
+export const metadata: Metadata = {
+  title: 'Register',
+};
+
+const RegisterPage = async () => {
+  return (
+    <div>
+      <Form />
+    </div>
+  );
+};
+
+export default RegisterPage;
+
+
+//app\(front)\search\page.tsx
+import Link from 'next/link';
+
+import ProductItem from '@/components/products/ProductItem';
+import { Rating } from '@/components/products/Rating';
+import productServices from '@/lib/services/productService';
+
+const sortOrders = ['newest', 'lowest', 'highest', 'rating'];
+const prices = [
+  {
+    name: '$1 to $50',
+    value: '1-50',
+  },
+  {
+    name: '$51 to $200',
+    value: '51-200',
+  },
+  {
+    name: '$201 to $1000',
+    value: '201-1000',
+  },
+];
+
+const ratings = [5, 4, 3, 2, 1];
+
+export async function generateMetadata({
+  searchParams: { q = 'all', category = 'all', price = 'all', rating = 'all' },
+}: {
+  searchParams: {
+    q: string;
+    category: string;
+    price: string;
+    rating: string;
+    sort: string;
+    page: string;
+  };
+}) {
+  if (
+    (q !== 'all' && q !== '') ||
+    category !== 'all' ||
+    rating !== 'all' ||
+    price !== 'all'
+  ) {
+    return {
+      title: `Search ${q !== 'all' ? q : ''}
+          ${category !== 'all' ? ` : Category ${category}` : ''}
+          ${price !== 'all' ? ` : Price ${price}` : ''}
+          ${rating !== 'all' ? ` : Rating ${rating}` : ''}`,
+    };
+  } else {
+    return {
+      title: 'Search Products',
+    };
+  }
+}
+
+export default async function SearchPage({
+  searchParams: {
+    q = 'all',
+    category = 'all',
+    price = 'all',
+    rating = 'all',
+    sort = 'newest',
+    page = '1',
+  },
+}: {
+  searchParams: {
+    q: string;
+    category: string;
+    price: string;
+    rating: string;
+    sort: string;
+    page: string;
+  };
+}) {
+  const getFilterUrl = ({
+    c,
+    s,
+    p,
+    r,
+    pg,
+  }: {
+    c?: string;
+    s?: string;
+    p?: string;
+    r?: string;
+    pg?: string;
+  }) => {
+    const params = { q, category, price, rating, sort, page };
+    if (c) params.category = c;
+    if (p) params.price = p;
+    if (r) params.rating = r;
+    if (pg) params.page = pg;
+    if (s) params.sort = s;
+    return `/search?${new URLSearchParams(params).toString()}`;
+  };
+  const categories = await productServices.getCategories();
+  const { countProducts, products, pages } = await productServices.getByQuery({
+    category,
+    q,
+    price,
+    rating,
+    page,
+    sort,
+  });
+  return (
+    <div className='grid md:grid-cols-5 md:gap-5'>
+      <div>
+        <div className='py-2 text-xl'>Categories</div>
+        <div>
+          <ul>
+            <li>
+              <Link
+                className={`link-hover link ${
+                  'all' === category && 'link-primary'
+                }`}
+                href={getFilterUrl({ c: 'all' })}
+              >
+                Any
+              </Link>
+            </li>
+            {categories.map((c: string) => (
+              <li key={c}>
+                <Link
+                  className={`link-hover link ${
+                    c === category && 'link-primary'
+                  }`}
+                  href={getFilterUrl({ c })}
+                >
+                  {c}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <div className='py-2 text-xl'>Price</div>
+          <ul>
+            <li>
+              <Link
+                className={`link-hover link ${
+                  'all' === price && 'link-primary'
+                }`}
+                href={getFilterUrl({ p: 'all' })}
+              >
+                Any
+              </Link>
+            </li>
+            {prices.map((p) => (
+              <li key={p.value}>
+                <Link
+                  href={getFilterUrl({ p: p.value })}
+                  className={`link-hover link ${
+                    p.value === price && 'link-primary'
+                  }`}
+                >
+                  {p.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <div className='py-2 text-xl'>Customer Review</div>
+          <ul className='flex flex-col gap-1'>
+            <li>
+              <Link
+                href={getFilterUrl({ r: 'all' })}
+                className={`link-hover link ${
+                  'all' === rating && 'link-primary'
+                }`}
+              >
+                Any
+              </Link>
+            </li>
+            {ratings.map((r) => (
+              <li key={r}>
+                <Link
+                  href={getFilterUrl({ r: `${r}` })}
+                  className={`link-hover link ${
+                    `${r}` === rating && 'link-primary'
+                  }`}
+                >
+                  <Rating caption={' & up'} value={r} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className='md:col-span-4'>
+        <div className='flex flex-col justify-between py-4 md:flex-row'>
+          <div className='flex items-center'>
+            {products.length === 0 ? 'No' : countProducts} Results
+            {q !== 'all' && q !== '' && ' : ' + q}
+            {category !== 'all' && ' : ' + category}
+            {price !== 'all' && ' : Price ' + price}
+            {rating !== 'all' && ' : Rating ' + rating + ' & up'}
+            &nbsp;
+            {(q !== 'all' && q !== '') ||
+            category !== 'all' ||
+            rating !== 'all' ||
+            price !== 'all' ? (
+              <Link className='btn btn-ghost btn-sm' href='/search'>
+                Clear
+              </Link>
+            ) : null}
+          </div>
+          <div>
+            Sort by:{' '}
+            {sortOrders.map((s) => (
+              <Link
+                key={s}
+                className={`link-hover link mx-2 ${
+                  sort == s ? 'link-primary' : ''
+                } `}
+                href={getFilterUrl({ s })}
+              >
+                {s}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-3  '>
+            {products.map((product) => (
+              <ProductItem key={product.slug} product={product} />
+            ))}
+          </div>
+          <div className='join'>
+            {products.length > 0 &&
+              Array.from(Array(pages).keys()).map((p) => (
+                <Link
+                  key={p}
+                  className={`btn join-item ${
+                    Number(page) === p + 1 ? 'btn-active' : ''
+                  } `}
+                  href={getFilterUrl({ pg: `${p + 1}` })}
+                >
+                  {p + 1}
+                </Link>
+              ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+//app\(front)\shipping\Form.tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { SubmitHandler, ValidationRule, useForm } from 'react-hook-form';
+
+import CheckoutSteps from '@/components/checkout/CheckoutSteps';
+import useCartService from '@/lib/hooks/useCartStore';
+import { ShippingAddress } from '@/lib/models/OrderModel';
+
+const Form = () => {
+  const router = useRouter();
+  const { saveShippingAddress, shippingAddress } = useCartService();
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<ShippingAddress>({
+    defaultValues: {
+      fullName: '',
+      address: '',
+      city: '',
+      postalCode: '',
+      country: '',
+    },
+  });
+
+  useEffect(() => {
+    setValue('fullName', shippingAddress.fullName);
+    setValue('address', shippingAddress.address);
+    setValue('city', shippingAddress.city);
+    setValue('postalCode', shippingAddress.postalCode);
+    setValue('country', shippingAddress.country);
+  }, [setValue, shippingAddress]);
+
+  const formSubmit: SubmitHandler<ShippingAddress> = async (form) => {
+    saveShippingAddress(form);
+    router.push('/payment');
+  };
+
+  const FormInput = ({
+    id,
+    name,
+    required,
+    pattern,
+  }: {
+    id: keyof ShippingAddress;
+    name: string;
+    required?: boolean;
+    pattern?: ValidationRule<RegExp>;
+  }) => (
+    <div className='mb-2'>
+      <label className='label' htmlFor={id}>
+        {name}
+      </label>
+      <input
+        type='text'
+        id={id}
+        {...register(id, {
+          required: required && `${name} is required`,
+          pattern,
+        })}
+        className='input input-bordered w-full max-w-sm'
+      />
+      {errors[id]?.message && (
+        <div className='text-error'>{errors[id]?.message}</div>
+      )}
+    </div>
+  );
+
+  return (
+    <div>
+      <CheckoutSteps current={1} />
+      <div className='card mx-auto my-4 max-w-sm bg-base-300'>
+        <div className='card-body'>
+          <h1 className='card-title'>Shipping Address</h1>
+          <form onSubmit={handleSubmit(formSubmit)}>
+            <FormInput name='Full Name' id='fullName' required />
+            <FormInput name='Address' id='address' required />
+            <FormInput name='City' id='city' required />
+            <FormInput name='Postal Code' id='postalCode' required />
+            <FormInput name='Country' id='country' required />
+            <div className='my-2'>
+              <button
+                type='submit'
+                disabled={isSubmitting}
+                className='btn btn-primary w-full'
+              >
+                {isSubmitting && <span className='loading loading-spinner' />}
+                Next
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Form;
+
+
+//app\(front)\shipping\page.tsx
+import { Metadata } from 'next';
+
+import Form from './Form';
+
+export const metadata: Metadata = {
+  title: 'Shipping',
+};
+
+const ShippingPage = async () => {
+  return (
+    <div>
+      <Form />
+    </div>
+  );
+};
+
+export default ShippingPage;
+
+
+//app\(front)\signin\Form.tsx
+'use client';
+
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn, useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+
+type Inputs = {
+  email: string;
+  password: string;
+};
+
+const Form = () => {
+  const params = useSearchParams();
+  const { data: session } = useSession();
+
+  let callbackUrl = params.get('callbackUrl') || '/';
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<Inputs>({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  useEffect(() => {
+    if (session && session.user) {
+      router.push(callbackUrl);
+    }
+  }, [callbackUrl, router, session, params]);
+
+  const formSubmit: SubmitHandler<Inputs> = async (form) => {
+    const { email, password } = form;
+    signIn('credentials', {
+      email,
+      password,
+    });
+  };
+
+  return (
+    <div className='card mx-auto my-4 max-w-sm bg-base-300'>
+      <div className='card-body'>
+        <h1 className='card-title'>Sign in</h1>
+        {params.get('error') && (
+          <div className='alert text-error'>
+            {params.get('error') === 'CredentialsSignin'
+              ? 'Invalid email or password'
+              : params.get('error')}
+          </div>
+        )}
+        {params.get('success') && (
+          <div className='alert text-success'>{params.get('success')}</div>
+        )}
+        <form onSubmit={handleSubmit(formSubmit)}>
+          <div className='my-2'>
+            <label className='label' htmlFor='email'>
+              Email
+            </label>
+            <input
+              type='text'
+              id='email'
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
+                  message: 'Email is invalid',
+                },
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.email?.message && (
+              <div className='text-error'>{errors.email.message}</div>
+            )}
+          </div>
+          <div className='my-2'>
+            <label className='label' htmlFor='password'>
+              Password
+            </label>
+            <input
+              type='password'
+              id='password'
+              {...register('password', {
+                required: 'Password is required',
+              })}
+              className='input input-bordered w-full max-w-sm'
+            />
+            {errors.password?.message && (
+              <div className='text-error'>{errors.password.message}</div>
+            )}
+          </div>
+          <div className='my-4'>
+            <button
+              type='submit'
+              disabled={isSubmitting}
+              className='btn btn-primary w-full'
+            >
+              {isSubmitting && (
+                <span className='loading loading-spinner'></span>
+              )}
+              Sign in
+            </button>
+          </div>
+        </form>
+        <div>
+          Need an account?{' '}
+          <Link className='link' href={`/register?callbackUrl=${callbackUrl}`}>
+            Register
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Form;
+
+
+//app\(front)\signin\page.tsx
+import { Metadata } from 'next';
+
+import Form from './Form';
+
+export const metadata: Metadata = {
+  title: 'Sign in',
+};
+
+const SignInPage = async () => {
+  return (
+    <div>
+      <Form />
+    </div>
+  );
+};
+
+export default SignInPage;
+
+
+//app\(front)\layout.tsx
+export default function FrontLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return <main className='container flex-grow'>{children}</main>;
+}
+
+
+//app\(front)\loading.tsx
+import React from 'react';
+
+const Loading = () => {
+  return (
+    <div className='grid flex-1 place-content-center'>
+      <span className='loading loading-spinner loading-lg'></span>
+    </div>
+  );
+};
+
+export default Loading;
+
+
+//app\(front)\page.tsx
+import { Metadata } from 'next';
+import { Suspense } from 'react';
+
+import Carousel, { CarouselSkeleton } from '@/components/carousel/carousel';
+import Categories from '@/components/categories/Categories';
+import Icons from '@/components/icons/Icons';
+import ProductItems, {
+  ProductItemsSkeleton,
+} from '@/components/products/ProductItems';
+import ReadMore from '@/components/readMore/ReadMore';
+import Text from '@/components/readMore/Text';
+import Slider from '@/components/slider/Slider';
+
+export const metadata: Metadata = {
+  title: process.env.NEXT_PUBLIC_APP_NAME || 'Fullstack Next.js Store',
+  description:
+    process.env.NEXT_PUBLIC_APP_DESC ||
+    'Fullstack Next.js Store - Server Components, MongoDB, Next Auth, Tailwind, Zustand',
+};
+
+const HomePage = () => {
+  return (
+    <div className='my-8 flex flex-col gap-4 md:gap-16'>
+      <div>
+        <Suspense fallback={<CarouselSkeleton />}>
+          <Carousel />
+        </Suspense>
+      </div>
+      <div className='flex flex-col gap-8 md:flex-row'>
+        <div className='flex-1'>
+          <p className='text-nowrap text-4xl font-semibold md:text-6xl'>
+            Simply Unique/ <br /> Simply Better.
+          </p>
+        </div>
+        <div className='flex flex-1 items-center'>
+          <div>
+            <span className='font-bold'>Fashion Corner</span> is a gift &
+            clothes store based in HCMC, <br className='hidden sm:inline' />
+            Vietnam. Est since 2019.
+          </div>
+        </div>
+      </div>
+      <Categories />
+      <Icons />
+
+      <Suspense
+        fallback={<ProductItemsSkeleton qty={8} name='Latest Products' />}
+      >
+        <ProductItems />
+      </Suspense>
+
+      <Suspense fallback={<ProductItemsSkeleton qty={4} name='Top Rated' />}>
+        <Slider />
+      </Suspense>
+
+      <ReadMore>
+        <Text />
+      </ReadMore>
+    </div>
+  );
+};
+
+export default HomePage;
+
+
+//app\admin\dashboard\Dashboard.tsx
+'use client';
+
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Filler,
+  Legend,
+  BarElement,
+  ArcElement,
+} from 'chart.js';
+import Link from 'next/link';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import useSWR from 'swr';
+
+import { formatNumber } from '@/lib/utils';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Filler,
+  Legend,
+  BarElement,
+  ArcElement,
+);
+
+export const options = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'top',
+    },
+  },
+};
+
+const Dashboard = () => {
+  const { data: summary, error } = useSWR(`/api/admin/summary`);
+
+  console.log(summary);
+
+  if (error) return error.message;
+  if (!summary) return 'Loading...';
+
+  const salesData = {
+    labels: summary.salesData.map((x: { _id: string }) => x._id),
+    datasets: [
+      {
+        fill: true,
+        label: 'Sales',
+        data: summary.salesData.map(
+          (x: { totalSales: number }) => x.totalSales,
+        ),
+        borderColor: 'rgb(53, 162, 235)',
+        backgroundColor: 'rgba(53, 162, 235, 0.5)',
+      },
+    ],
+  };
+  const ordersData = {
+    labels: summary.salesData.map((x: { _id: string }) => x._id),
+    datasets: [
+      {
+        fill: true,
+        label: 'Orders',
+        data: summary.salesData.map(
+          (x: { totalOrders: number }) => x.totalOrders,
+        ),
+        borderColor: 'rgb(53, 162, 235)',
+        backgroundColor: 'rgba(53, 162, 235, 0.5)',
+      },
+    ],
+  };
+  const productsData = {
+    labels: summary.productsData.map((x: { _id: string }) => x._id), // 2022/01 2022/03
+    datasets: [
+      {
+        label: 'Category',
+        data: summary.productsData.map(
+          (x: { totalProducts: number }) => x.totalProducts,
+        ),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+        ],
+      },
+    ],
+  };
+  const usersData = {
+    labels: summary.usersData.map((x: { _id: string }) => x._id), // 2022/01 2022/03
+    datasets: [
+      {
+        label: 'Users',
+        borderColor: 'rgb(53, 162, 235)',
+        backgroundColor: 'rgba(75, 136, 177, 0.5)',
+        data: summary.usersData.map(
+          (x: { totalUsers: number }) => x.totalUsers,
+        ),
+      },
+    ],
+  };
+
+  return (
+    <div>
+      <div className='stats stats-vertical my-4 inline-grid shadow md:stats-horizontal md:flex'>
+        <div className='stat'>
+          <div className='stat-title'>Sales</div>
+          <div className='stat-value text-primary'>
+            ${formatNumber(summary.ordersPrice)}
+          </div>
+          <div className='stat-desc'>
+            <Link href='/admin/orders'>View sales</Link>
+          </div>
+        </div>
+        <div className='stat'>
+          <div className='stat-title'> Orders</div>
+          <div className='stat-value text-primary'>{summary.ordersCount}</div>
+          <div className='stat-desc'>
+            <Link href='/admin/orders'>View orders</Link>
+          </div>
+        </div>
+        <div className='stat'>
+          <div className='stat-title'>Products</div>
+          <div className='stat-value text-primary'>{summary.productsCount}</div>
+          <div className='stat-desc'>
+            <Link href='/admin/products'>View products</Link>
+          </div>
+        </div>
+        <div className='stat'>
+          <div className='stat-title'>Users</div>
+          <div className='stat-value text-primary'>{summary.usersCount}</div>
+          <div className='stat-desc'>
+            <Link href='/admin/users'>View users</Link>
+          </div>
+        </div>
+      </div>
+      <div className='grid gap-4 md:grid-cols-2'>
+        <div>
+          <h2 className='py-2 text-xl'>Sales Report</h2>
+          <Line data={salesData} />
+        </div>
+        <div>
+          <h2 className='py-2 text-xl'>Orders Report</h2>
+          <Line data={ordersData} />
+        </div>
+      </div>
+      <div className='grid gap-4 md:grid-cols-2'>
+        <div>
+          <h2 className='py-2 text-xl'>Products Report</h2>
+          <div className='flex h-80 w-96 items-center justify-center '>
+            <Doughnut data={productsData} />
+          </div>
+        </div>
+        <div>
+          <h2 className='py-2 text-xl'>Users Report</h2>
+          <Bar data={usersData} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
+
+
+//app\admin\dashboard\page.tsx
+import AdminLayout from '@/components/admin/AdminLayout';
+
+import Dashboard from './Dashboard';
+
+export const metadata = {
+  title: 'Admin Dashboard',
+};
+const DashbaordPage = () => {
+  return (
+    <AdminLayout activeItem='dashboard'>
+      <Dashboard />
+    </AdminLayout>
+  );
+};
+
+export default DashbaordPage;
+
+
+//app\admin\orders\Orders.tsx
+'use client';
+
+import Link from 'next/link';
+import useSWR from 'swr';
+
+import { Order } from '@/lib/models/OrderModel';
+
+export default function Orders() {
+  const { data: orders, error, isLoading } = useSWR(`/api/admin/orders`);
+
+  if (error) return 'An error has occurred.';
+  if (isLoading) return 'Loading...';
+
+  return (
+    <div>
+      <h1 className='py-4 text-2xl'>Orders</h1>
+      <div className='overflow-x-auto'>
+        <table className='table'>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>USER</th>
+              <th>DATE</th>
+              <th>TOTAL</th>
+              <th>PAID</th>
+              <th>DELIVERED</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order: Order) => (
+              <tr key={order._id}>
+                <td>..{order._id.substring(20, 24)}</td>
+                <td>{order.user?.name || 'Deleted user'}</td>
+                <td>{order.createdAt.substring(0, 10)}</td>
+                <td>${order.totalPrice}</td>
+                <td>
+                  {order.isPaid && order.paidAt
+                    ? `${order.paidAt.substring(0, 10)}`
+                    : 'not paid'}
+                </td>
+                <td>
+                  {order.isDelivered && order.deliveredAt
+                    ? `${order.deliveredAt.substring(0, 10)}`
+                    : 'not delivered'}
+                </td>
+                <td>
+                  <Link href={`/order/${order._id}`} passHref>
+                    Details
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
+//app\admin\orders\page.tsx
+import AdminLayout from '@/components/admin/AdminLayout';
+
+import Orders from './Orders';
+
+export const metadata = {
+  title: 'Admin Orders',
+};
+const AdminOrdersPage = () => {
+  return (
+    <AdminLayout activeItem='orders'>
+      <Orders />
+    </AdminLayout>
+  );
+};
+
+export default AdminOrdersPage;
+
+
+//app\admin\products\[id]\Form.tsx
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { ValidationRule, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+
+import { Product } from '@/lib/models/ProductModel';
+import { formatId } from '@/lib/utils';
+
+export default function ProductEditForm({ productId }: { productId: string }) {
+  const { data: product, error } = useSWR(`/api/admin/products/${productId}`);
+  const router = useRouter();
+  const { trigger: updateProduct, isMutating: isUpdating } = useSWRMutation(
+    `/api/admin/products/${productId}`,
+    async (url, { arg }) => {
+      const res = await fetch(`${url}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(arg),
+      });
+      const data = await res.json();
+      if (!res.ok) return toast.error(data.message);
+
+      toast.success('Product updated successfully');
+      router.push('/admin/products');
+    },
+  );
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm<Product>();
+
+  useEffect(() => {
+    if (!product) return;
+    setValue('name', product.name);
+    setValue('slug', product.slug);
+    setValue('price', product.price);
+    setValue('image', product.image);
+    setValue('category', product.category);
+    setValue('brand', product.brand);
+    setValue('countInStock', product.countInStock);
+    setValue('description', product.description);
+  }, [product, setValue]);
+
+  const formSubmit = async (formData: any) => {
+    await updateProduct(formData);
+  };
+
+  if (error) return error.message;
+
+  if (!product) return 'Loading...';
+
+  const FormInput = ({
+    id,
+    name,
+    required,
+    pattern,
+  }: {
+    id: keyof Product;
+    name: string;
+    required?: boolean;
+    pattern?: ValidationRule<RegExp>;
+  }) => (
+    <div className='mb-6 md:flex'>
+      <label className='label md:w-1/5' htmlFor={id}>
+        {name}
+      </label>
+      <div className='md:w-4/5'>
+        <input
+          type='text'
+          id={id}
+          {...register(id, {
+            required: required && `${name} is required`,
+            pattern,
+          })}
+          className='input input-bordered w-full max-w-md'
+        />
+        {errors[id]?.message && (
+          <div className='text-error'>{errors[id]?.message}</div>
+        )}
+      </div>
+    </div>
+  );
+
+  const uploadHandler = async (e: any) => {
+    const toastId = toast.loading('Uploading image...');
+    try {
+      const resSign = await fetch('/api/cloudinary-sign', {
+        method: 'POST',
+      });
+      const { signature, timestamp } = await resSign.json();
+      const file = e.target.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('signature', signature);
+      formData.append('timestamp', timestamp);
+      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        },
+      );
+      const data = await res.json();
+      console.log(data.secure_url);
+      setValue('image', data.secure_url);
+      toast.success('File uploaded successfully', {
+        id: toastId,
+      });
+    } catch (err: any) {
+      toast.error(err.message, {
+        id: toastId,
+      });
+    }
+  };
+
+  return (
+    <div>
+      <h1 className='py-4 text-2xl'>Edit Product {formatId(productId)}</h1>
+      <div>
+        <form onSubmit={handleSubmit(formSubmit)}>
+          <FormInput name='Name' id='name' required />
+          <FormInput name='Slug' id='slug' required />
+          <FormInput name='Image' id='image' required />
+          <div className='mb-6 md:flex'>
+            <label className='label md:w-1/5' htmlFor='imageFile'>
+              Upload Image
+            </label>
+            <div className='md:w-4/5'>
+              <input
+                type='file'
+                className='file-input w-full max-w-md'
+                id='imageFile'
+                onChange={uploadHandler}
+              />
+            </div>
+          </div>
+          <FormInput name='Price' id='price' required />
+          <FormInput name='Category' id='category' required />
+          <FormInput name='Brand' id='brand' required />
+          <FormInput name='Description' id='description' required />
+          <FormInput name='Count In Stock' id='countInStock' required />
+
+          <button
+            type='submit'
+            disabled={isUpdating}
+            className='btn btn-primary'
+          >
+            {isUpdating && <span className='loading loading-spinner'></span>}
+            Update
+          </button>
+          <Link className='btn ml-4 ' href='/admin/products'>
+            Cancel
+          </Link>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+
+//app\admin\products\[id]\page.tsx
+import AdminLayout from '@/components/admin/AdminLayout';
+
+import Form from './Form';
+
+export function generateMetadata({ params }: { params: { id: string } }) {
+  return {
+    title: `Edit Product ${params.id}`,
+  };
+}
+
+export default function ProductEditPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  return (
+    <AdminLayout activeItem='products'>
+      <Form productId={params.id} />
+    </AdminLayout>
+  );
+}
+
+
+//app\admin\products\page.tsx
+import AdminLayout from '@/components/admin/AdminLayout';
+
+import Products from './Products';
+
+const AdminProductsPge = () => {
+  return (
+    <AdminLayout activeItem='products'>
+      <Products />
+    </AdminLayout>
+  );
+};
+
+export default AdminProductsPge;
+
+
+//app\admin\products\Products.tsx
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+
+import { Product } from '@/lib/models/ProductModel';
+import { formatId } from '@/lib/utils';
+
+export default function Products() {
+  const { data: products, error } = useSWR(`/api/admin/products`);
+
+  const router = useRouter();
+
+  const { trigger: deleteProduct } = useSWRMutation(
+    `/api/admin/products`,
+    async (url, { arg }: { arg: { productId: string } }) => {
+      const toastId = toast.loading('Deleting product...');
+      const res = await fetch(`${url}/${arg.productId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await res.json();
+      res.ok
+        ? toast.success('Product deleted successfully', {
+            id: toastId,
+          })
+        : toast.error(data.message, {
+            id: toastId,
+          });
+    },
+  );
+
+  const { trigger: createProduct, isMutating: isCreating } = useSWRMutation(
+    `/api/admin/products`,
+    async (url) => {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) return toast.error(data.message);
+
+      toast.success('Product created successfully');
+      router.push(`/admin/products/${data.product._id}`);
+    },
+  );
+
+  if (error) return 'An error has occurred.';
+  if (!products) return 'Loading...';
+
+  return (
+    <div>
+      <div className='flex items-center justify-between'>
+        <h1 className='py-4 text-2xl'>Products</h1>
+        <button
+          disabled={isCreating}
+          onClick={() => createProduct()}
+          className='btn btn-primary btn-sm'
+        >
+          {isCreating && <span className='loading loading-spinner'></span>}
+          Create
+        </button>
+      </div>
+
+      <div className='overflow-x-auto'>
+        <table className='table table-zebra'>
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>name</th>
+              <th>price</th>
+              <th>category</th>
+              <th>count in stock</th>
+              <th>rating</th>
+              <th>actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((product: Product) => (
+              <tr key={product._id}>
+                <td>{formatId(product._id!)}</td>
+                <td>{product.name}</td>
+                <td>${product.price}</td>
+                <td>{product.category}</td>
+                <td>{product.countInStock}</td>
+                <td>{product.rating}</td>
+                <td>
+                  <Link
+                    href={`/admin/products/${product._id}`}
+                    type='button'
+                    className='btn btn-ghost btn-sm'
+                  >
+                    Edit
+                  </Link>
+                  &nbsp;
+                  <button
+                    onClick={() => deleteProduct({ productId: product._id! })}
+                    type='button'
+                    className='btn btn-ghost btn-sm'
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
+//app\admin\users\[id]\Form.tsx
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { ValidationRule, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+
+import { User } from '@/lib/models/UserModel';
+import { formatId } from '@/lib/utils';
+
+export default function UserEditForm({ userId }: { userId: string }) {
+  const { data: user, error } = useSWR(`/api/admin/users/${userId}`);
+  const router = useRouter();
+  const { trigger: updateUser, isMutating: isUpdating } = useSWRMutation(
+    `/api/admin/users/${userId}`,
+    async (url, { arg }) => {
+      const res = await fetch(`${url}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(arg),
+      });
+      const data = await res.json();
+      if (!res.ok) return toast.error(data.message);
+
+      toast.success('User updated successfully');
+      router.push('/admin/users');
+    },
+  );
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm<User>();
+
+  useEffect(() => {
+    if (!user) return;
+    setValue('name', user.name);
+    setValue('email', user.email);
+    setValue('isAdmin', user.isAdmin);
+  }, [user, setValue]);
+
+  const formSubmit = async (formData: any) => {
+    await updateUser(formData);
+  };
+
+  if (error) return error.message;
+  if (!user) return 'Loading...';
+
+  const FormInput = ({
+    id,
+    name,
+    required,
+    pattern,
+  }: {
+    id: keyof User;
+    name: string;
+    required?: boolean;
+    pattern?: ValidationRule<RegExp>;
+  }) => (
+    <div className='my-3 md:flex'>
+      <label className='label md:w-1/5' htmlFor={id}>
+        {name}
+      </label>
+      <div className='md:w-4/5'>
+        <input
+          type='text'
+          id={id}
+          {...register(id, {
+            required: required && `${name} is required`,
+            pattern,
+          })}
+          className='input input-bordered w-full max-w-md'
+        />
+        {errors[id]?.message && (
+          <div className='text-error'>{errors[id]?.message}</div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <h1 className='py-4 text-2xl'>Edit User {formatId(userId)}</h1>
+      <div>
+        <form onSubmit={handleSubmit(formSubmit)}>
+          <FormInput name='Name' id='name' required />
+          <FormInput name='Email' id='email' required />
+
+          <div className='my-3 md:flex'>
+            <label className='label md:w-1/5' htmlFor='isAdmin'>
+              Admin
+            </label>
+            <div className='md:w-4/5'>
+              <input
+                id='isAdmin'
+                type='checkbox'
+                className='toggle'
+                {...register('isAdmin')}
+              />
+            </div>
+          </div>
+
+          <button
+            type='submit'
+            disabled={isUpdating}
+            className='btn btn-primary'
+          >
+            {isUpdating && <span className='loading loading-spinner'></span>}
+            Update
+          </button>
+          <Link className='btn ml-4' href='/admin/users'>
+            Cancel
+          </Link>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+
+//app\admin\users\[id]\page.tsx
+import AdminLayout from '@/components/admin/AdminLayout';
+
+import Form from './Form';
+
+export function generateMetadata({ params }: { params: { id: string } }) {
+  return {
+    title: `Edit User ${params.id}`,
+  };
+}
+
+export default function UserEditPage({ params }: { params: { id: string } }) {
+  return (
+    <AdminLayout activeItem='users'>
+      <Form userId={params.id} />
+    </AdminLayout>
+  );
+}
+
+
+//app\admin\users\page.tsx
+import AdminLayout from '@/components/admin/AdminLayout';
+
+import Users from './Users';
+
+export const metadata = {
+  title: 'Admin Users',
+};
+const AdminUsersPage = () => {
+  return (
+    <AdminLayout activeItem='users'>
+      <Users />
+    </AdminLayout>
+  );
+};
+
+export default AdminUsersPage;
+
+
+//app\admin\users\Users.tsx
+'use client';
+
+import Link from 'next/link';
+import toast from 'react-hot-toast';
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+
+import { User } from '@/lib/models/UserModel';
+import { formatId } from '@/lib/utils';
+
+export default function Users() {
+  const { data: users, error } = useSWR(`/api/admin/users`);
+  const { trigger: deleteUser } = useSWRMutation(
+    `/api/admin/users`,
+    async (url, { arg }: { arg: { userId: string } }) => {
+      const toastId = toast.loading('Deleting user...');
+      const res = await fetch(`${url}/${arg.userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await res.json();
+      res.ok
+        ? toast.success('User deleted successfully', {
+            id: toastId,
+          })
+        : toast.error(data.message, {
+            id: toastId,
+          });
+    },
+  );
+  if (error) return 'An error has occurred.';
+  if (!users) return 'Loading...';
+
+  return (
+    <div>
+      <h1 className='py-4 text-2xl'>Users</h1>
+
+      <div className='overflow-x-auto'>
+        <table className='table table-zebra'>
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>name</th>
+              <th>email</th>
+              <th>admin</th>
+              <th>actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user: User) => (
+              <tr key={user._id}>
+                <td>{formatId(user._id)}</td>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+                <td>{user.isAdmin ? 'YES' : 'NO'}</td>
+
+                <td>
+                  <Link
+                    href={`/admin/users/${user._id}`}
+                    type='button'
+                    className='btn btn-ghost btn-sm'
+                  >
+                    Edit
+                  </Link>
+                  &nbsp;
+                  <button
+                    onClick={() => deleteUser({ userId: user._id })}
+                    type='button'
+                    className='btn btn-ghost btn-sm'
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
+//app\api\admin\orders\[id]\deliver\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import OrderModel from '@/lib/models/OrderModel';
+
+export const PUT = auth(async (...args: any) => {
+  const [req, { params }] = args;
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  try {
+    await dbConnect();
+
+    const order = await OrderModel.findById(params.id);
+    if (order) {
+      // order must be paid to mark as delivered
+      if (!order.isPaid)
+        return Response.json(
+          { message: 'Order is not paid' },
+          {
+            status: 400,
+          },
+        );
+      order.isDelivered = true;
+      order.deliveredAt = Date.now();
+      const updatedOrder = await order.save();
+      return Response.json(updatedOrder);
+    } else {
+      return Response.json(
+        { message: 'Order not found' },
+        {
+          status: 404,
+        },
+      );
+    }
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+}) as any;
+
+
+//app\api\admin\orders\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import OrderModel from '@/lib/models/OrderModel';
+
+export const GET = auth(async (req: any) => {
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+  const orders = await OrderModel.find()
+    .sort({ createdAt: -1 })
+    // get the name of user
+    .populate('user', 'name');
+
+  return Response.json(orders);
+}) as any;
+
+
+//app\api\admin\products\[id]\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import ProductModel from '@/lib/models/ProductModel';
+
+export const GET = auth(async (...args: any) => {
+  const [req, { params }] = args;
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+  const product = await ProductModel.findById(params.id);
+  if (!product) {
+    return Response.json(
+      { message: 'product not found' },
+      {
+        status: 404,
+      },
+    );
+  }
+  return Response.json(product);
+}) as any;
+
+export const PUT = auth(async (...args: any) => {
+  const [req, { params }] = args;
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+
+  const {
+    name,
+    slug,
+    price,
+    category,
+    image,
+    brand,
+    countInStock,
+    description,
+  } = await req.json();
+
+  try {
+    await dbConnect();
+
+    const product = await ProductModel.findById(params.id);
+    if (product) {
+      product.name = name;
+      product.slug = slug;
+      product.price = price;
+      product.category = category;
+      product.image = image;
+      product.brand = brand;
+      product.countInStock = countInStock;
+      product.description = description;
+
+      const updatedProduct = await product.save();
+      return Response.json(updatedProduct);
+    } else {
+      return Response.json(
+        { message: 'Product not found' },
+        {
+          status: 404,
+        },
+      );
+    }
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+}) as any;
+
+export const DELETE = auth(async (...args: any) => {
+  const [req, { params }] = args;
+
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+
+  try {
+    await dbConnect();
+    const product = await ProductModel.findById(params.id);
+    if (product) {
+      await product.deleteOne();
+      return Response.json({ message: 'Product deleted successfully' });
+    } else {
+      return Response.json(
+        { message: 'Product not found' },
+        {
+          status: 404,
+        },
+      );
+    }
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+}) as any;
+
+
+//app\api\admin\products\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import ProductModel from '@/lib/models/ProductModel';
+
+export const GET = auth(async (req: any) => {
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+  const products = await ProductModel.find();
+  return Response.json(products);
+}) as any;
+
+export const POST = auth(async (req: any) => {
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+  const product = new ProductModel({
+    name: 'sample name',
+    slug: 'sample-name-' + Math.random(),
+    image:
+      'https://res.cloudinary.com/dqxlehni0/image/upload/v1715622109/No_Image_Available_kbdno1.jpg',
+    price: 0,
+    category: 'sample category',
+    brand: 'sample brand',
+    countInStock: 0,
+    description: 'sample description',
+    rating: 0,
+    numReviews: 0,
+  });
+  try {
+    await product.save();
+    return Response.json(
+      { message: 'Product created successfully', product },
+      {
+        status: 201,
+      },
+    );
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+}) as any;
+
+
+//app\api\admin\summary\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import OrderModel from '@/lib/models/OrderModel';
+import ProductModel from '@/lib/models/ProductModel';
+import UserModel from '@/lib/models/UserModel';
+
+export const GET = auth(async (...request: any) => {
+  const [req, { params }] = request;
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json({ message: 'unauthorized' }, { status: 401 });
+  }
+  await dbConnect();
+
+  const ordersCount = await OrderModel.countDocuments();
+  const productsCount = await ProductModel.countDocuments();
+  const usersCount = await UserModel.countDocuments();
+
+  const ordersPriceGroup = await OrderModel.aggregate([
+    {
+      $group: {
+        _id: null,
+        // sum calculate total price of all orders
+        sales: { $sum: '$totalPrice' },
+      },
+    },
+  ]);
+
+  const ordersPrice =
+    ordersPriceGroup.length > 0 ? ordersPriceGroup[0].sales : 0;
+
+  const salesData = await OrderModel.aggregate([
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+        totalOrders: { $sum: 1 },
+        totalSales: { $sum: '$totalPrice' },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  const productsData = await ProductModel.aggregate([
+    {
+      $group: {
+        _id: '$category',
+        totalProducts: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  const usersData = await UserModel.aggregate([
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+        totalUsers: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  return Response.json({
+    ordersCount,
+    productsCount,
+    usersCount,
+    ordersPrice,
+    salesData,
+    productsData,
+    usersData,
+  });
+});
+
+
+//app\api\admin\users\[id]\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import UserModel from '@/lib/models/UserModel';
+
+export const GET = auth(async (...args: any) => {
+  const [req, { params }] = args;
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+  const user = await UserModel.findById(params.id);
+  if (!user) {
+    return Response.json(
+      { message: 'user not found' },
+      {
+        status: 404,
+      },
+    );
+  }
+  return Response.json(user);
+}) as any;
+
+export const PUT = auth(async (...p: any) => {
+  const [req, { params }] = p;
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+
+  const { name, email, isAdmin } = await req.json();
+
+  try {
+    await dbConnect();
+    const user = await UserModel.findById(params.id);
+    if (user) {
+      user.name = name;
+      user.email = email;
+      user.isAdmin = Boolean(isAdmin);
+
+      const updatedUser = await user.save();
+      return Response.json({
+        message: 'User updated successfully',
+        user: updatedUser,
+      });
+    } else {
+      return Response.json(
+        { message: 'User not found' },
+        {
+          status: 404,
+        },
+      );
+    }
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+}) as any;
+
+export const DELETE = auth(async (...args: any) => {
+  const [req, { params }] = args;
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+
+  try {
+    await dbConnect();
+    const user = await UserModel.findById(params.id);
+    if (user) {
+      if (user.isAdmin)
+        return Response.json(
+          { message: 'User is admin' },
+          {
+            status: 400,
+          },
+        );
+      await user.deleteOne();
+      return Response.json({ message: 'User deleted successfully' });
+    } else {
+      return Response.json(
+        { message: 'User not found' },
+        {
+          status: 404,
+        },
+      );
+    }
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+}) as any;
+
+
+//app\api\admin\users\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import UserModel from '@/lib/models/UserModel';
+
+export const GET = auth(async (req: any) => {
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+  const users = await UserModel.find();
+  return Response.json(users);
+}) as any;
+
+
+//app\api\auth\[...nextauth]\route.ts
+export { GET, POST } from '@/lib/auth';
+
+
+//app\api\auth\profile\route.ts
+import bcrypt from 'bcryptjs';
+
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import UserModel from '@/lib/models/UserModel';
+
+export const PUT = auth(async (req) => {
+  if (!req.auth) {
+    return Response.json({ message: 'Not authenticated' }, { status: 401 });
+  }
+  const { user } = req.auth;
+  const { name, email, password } = await req.json();
+  await dbConnect();
+  try {
+    const dbUser = await UserModel.findById(user._id);
+    if (!dbUser) {
+      return Response.json(
+        { message: 'User not found' },
+        {
+          status: 404,
+        },
+      );
+    }
+    dbUser.name = name;
+    dbUser.email = email;
+    dbUser.password = password
+      ? await bcrypt.hash(password, 5)
+      : dbUser.password;
+    await dbUser.save();
+    return Response.json({ message: 'User has been updated' });
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+});
+
+
+//app\api\auth\register\route.ts
+import bcrypt from 'bcryptjs';
+import { NextRequest } from 'next/server';
+
+import dbConnect from '@/lib/dbConnect';
+import UserModel from '@/lib/models/UserModel';
+
+export const POST = async (request: NextRequest) => {
+  const { name, email, password } = await request.json();
+  await dbConnect();
+  const hashedPassword = await bcrypt.hash(password, 5);
+  const newUser = new UserModel({
+    name,
+    email,
+    password: hashedPassword,
+  });
+  try {
+    await newUser.save();
+    return Response.json(
+      { message: 'User has been created' },
+      {
+        status: 201,
+      },
+    );
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+};
+
+
+//app\api\cloudinary-sign\route.ts
+import cloudinary from 'cloudinary';
+
+import { auth } from '@/lib/auth';
+
+export const POST = auth(async (req: any) => {
+  if (!req.auth || !req.auth.user?.isAdmin) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+
+  const timestamp = Math.round(new Date().getTime() / 1000);
+  const signature = cloudinary.v2.utils.api_sign_request(
+    {
+      timestamp: timestamp,
+    },
+    process.env.CLOUDINARY_SECRET!,
+  );
+
+  return Response.json({ signature, timestamp });
+}) as any;
+
+
+//app\api\orders\[id]\capture-paypal-order\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import OrderModel from '@/lib/models/OrderModel';
+import { paypal } from '@/lib/paypal';
+
+export const POST = auth(async (...request: any) => {
+  const [req, { params }] = request;
+  if (!req.auth) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+  const order = await OrderModel.findById(params.id);
+  if (order) {
+    try {
+      const { orderID } = await req.json();
+      const captureData = await paypal.capturePayment(orderID);
+      order.isPaid = true;
+      order.paidAt = Date.now();
+      order.paymentResult = {
+        id: captureData.id,
+        status: captureData.status,
+        email_address: captureData.payer.email_address,
+      };
+      const updatedOrder = await order.save();
+      return Response.json(updatedOrder);
+    } catch (err: any) {
+      return Response.json(
+        { message: err.message },
+        {
+          status: 500,
+        },
+      );
+    }
+  } else {
+    return Response.json(
+      { message: 'Order not found' },
+      {
+        status: 404,
+      },
+    );
+  }
+});
+
+
+//app\api\orders\[id]\create-paypal-order\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import OrderModel from '@/lib/models/OrderModel';
+import { paypal } from '@/lib/paypal';
+
+export const POST = auth(async (...request: any) => {
+  const [req, { params }] = request;
+  if (!req.auth) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+
+  const order = await OrderModel.findById(params.id);
+  if (order) {
+    try {
+      const paypalOrder = await paypal.createOrder(order.totalPrice);
+      return Response.json(paypalOrder);
+    } catch (err: any) {
+      return Response.json(
+        { message: err.message },
+        {
+          status: 500,
+        },
+      );
+    }
+  } else {
+    return Response.json(
+      { message: 'Order not found' },
+      {
+        status: 404,
+      },
+    );
+  }
+});
+
+
+//app\api\orders\[id]\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import OrderModel from '@/lib/models/OrderModel';
+
+export const GET = auth(async (...request: any) => {
+  const [req, { params }] = request;
+  if (!req.auth) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  await dbConnect();
+  const order = await OrderModel.findById(params.id);
+  return Response.json(order);
+});
+
+
+//app\api\orders\mine\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import OrderModel from '@/lib/models/OrderModel';
+
+export const GET = auth(async (req: any) => {
+  if (!req.auth) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  const { user } = req.auth;
+  await dbConnect();
+  const orders = await OrderModel.find({ user: user._id });
+  return Response.json(orders);
+});
+
+
+//app\api\orders\route.ts
+import { auth } from '@/lib/auth';
+import dbConnect from '@/lib/dbConnect';
+import OrderModel, { OrderItem } from '@/lib/models/OrderModel';
+import ProductModel from '@/lib/models/ProductModel';
+import { round2 } from '@/lib/utils';
+
+const calcPrices = (orderItems: OrderItem[]) => {
+  // Calculate the items price
+  const itemsPrice = round2(
+    orderItems.reduce((acc, item) => acc + item.price * item.qty, 0),
+  );
+  // Calculate the shipping price
+  const shippingPrice = round2(itemsPrice > 100 ? 0 : 10);
+  // Calculate the tax price
+  const taxPrice = round2(Number((0.15 * itemsPrice).toFixed(2)));
+  // Calculate the total price
+  const totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
+  return { itemsPrice, shippingPrice, taxPrice, totalPrice };
+};
+
+export const POST = auth(async (req: any) => {
+  if (!req.auth) {
+    return Response.json(
+      { message: 'unauthorized' },
+      {
+        status: 401,
+      },
+    );
+  }
+  const { user } = req.auth;
+  try {
+    const payload = await req.json();
+    await dbConnect();
+    const dbProductPrices = await ProductModel.find(
+      {
+        _id: { $in: payload.items.map((x: { _id: string }) => x._id) },
+      },
+      'price',
+    );
+    const dbOrderItems = payload.items.map((x: { _id: string }) => ({
+      ...x,
+      product: x._id,
+      price: dbProductPrices.find((item) => item._id.toString() === x._id)
+        .price,
+      _id: undefined,
+    }));
+
+    const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
+      calcPrices(dbOrderItems);
+
+    const newOrder = new OrderModel({
+      items: dbOrderItems,
+      itemsPrice,
+      taxPrice,
+      shippingPrice,
+      totalPrice,
+      shippingAddress: payload.shippingAddress,
+      paymentMethod: payload.paymentMethod,
+      user: user._id,
+    });
+
+    const createdOrder = await newOrder.save();
+    return Response.json(
+      { message: 'Order has been created', order: createdOrder },
+      {
+        status: 201,
+      },
+    );
+  } catch (err: any) {
+    return Response.json(
+      { message: err.message },
+      {
+        status: 500,
+      },
+    );
+  }
+});
+
+
+//app\api\products\categories\route.ts
+import dbConnect from '@/lib/dbConnect';
+import ProductModel from '@/lib/models/ProductModel';
+
+export const GET = async (req: any) => {
+  await dbConnect();
+  const categories = await ProductModel.find().distinct('category');
+  return Response.json(categories);
+};
+
+
+//app\api\products\seed\route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+import data from '@/lib/data';
+import dbConnect from '@/lib/dbConnect';
+// import ProductModel from '@/lib/models/ProductModel';
+// import UserModel from '@/lib/models/UserModel';
+
+export const GET = async (request: NextRequest) => {
+  const { users, products } = data;
+  await dbConnect();
+  // await UserModel.deleteMany();
+  // await UserModel.insertMany(users);
+
+  // await ProductModel.deleteMany();
+  // await ProductModel.insertMany(products);
+
+  return NextResponse.json({
+    message: 'seeded successfully',
+    // users,
+    // products,
+  });
+};
+
+
+/* app\globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+
+//app\layout.tsx
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+
+import DrawerButton from '@/components/DrawerButton';
+import Footer from '@/components/footer/Footer';
+import Header from '@/components/header/Header';
+import Providers from '@/components/Providers';
+import Sidebar from '@/components/Sidebar';
+
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
+
+export const metadata: Metadata = {
+  title: 'Fashion Corner',
+  description: 'Generated by create next app',
+};
+
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <html lang='en'>
+      <body className={inter.className}>
+        <Providers>
+          <div className='drawer'>
+            <DrawerButton />
+            <div className='drawer-content'>
+              <div className='flex min-h-screen flex-col'>
+                <Header />
+                {children}
+                <Footer />
+              </div>
+            </div>
+            <div className='drawer-side'>
+              <label
+                htmlFor='my-drawer'
+                aria-label='close sidebar'
+                className='drawer-overlay'
+              ></label>
+              <Sidebar />
+            </div>
+          </div>
+        </Providers>
+      </body>
+    </html>
+  );
+};
+
+export default RootLayout;
+
+
+//app\not-found.tsx
+import Link from 'next/link';
+import React from 'react';
+
+const NotFoundPage = () => {
+  return (
+    <div className='grid flex-1 place-items-center'>
+      <div className='flex flex-col justify-center'>
+        <h1 className='mb-4 text-xl font-semibold'>404 - Page not found</h1>
+        <Link href='/' className='btn'>
+          Back Home
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default NotFoundPage;
+
+
+//components\admin\AdminLayout.tsx
+import Link from 'next/link';
+
+import { auth } from '@/lib/auth';
+
+const AdminLayout = async ({
+  activeItem = 'dashboard',
+  children,
+}: {
+  activeItem: string;
+  children: React.ReactNode;
+}) => {
+  const session = await auth();
+  if (!session || !session.user.isAdmin) {
+    return (
+      <div className='relative flex flex-grow p-4'>
+        <div>
+          <h1 className='text-2xl'>Unauthorized</h1>
+          <p>Admin permission required</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className='relative flex flex-grow'>
+      <div className='grid w-full md:grid-cols-5'>
+        <div className='bg-base-200'>
+          <ul className='menu gap-1'>
+            <li>
+              <Link
+                className={'dashboard' === activeItem ? 'active' : ''}
+                href='/admin/dashboard'
+              >
+                Dashboard
+              </Link>
+            </li>
+            <li>
+              <Link
+                className={'orders' === activeItem ? 'active' : ''}
+                href='/admin/orders'
+              >
+                Orders
+              </Link>
+            </li>
+            <li>
+              <Link
+                className={'products' === activeItem ? 'active' : ''}
+                href='/admin/products'
+              >
+                Products
+              </Link>
+            </li>
+            <li>
+              <Link
+                className={'users' === activeItem ? 'active' : ''}
+                href='/admin/users'
+              >
+                Users
+              </Link>
+            </li>
+          </ul>
+        </div>
+        <div className='px-4 md:col-span-4'>{children}</div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminLayout;
+
+
+//components\carousel\carousel.tsx
+import Image from 'next/image';
+import Link from 'next/link';
+
+import {
+  Carousel as SCarousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import productService from '@/lib/services/productService';
+import { delay } from '@/lib/utils';
+
+const Carousel = async () => {
+  await delay(3000);
+  const featuredProducts = await productService.getFeatured();
+
+  return (
+    <SCarousel opts={{ loop: true }}>
+      <CarouselContent>
+        {featuredProducts.map((product) => (
+          <CarouselItem key={product._id}>
+            <div className='w-full overflow-hidden rounded-lg'>
+              <Link href={`/product/${product.slug}`}>
+                <Image
+                  src={product.banner!}
+                  className='h-[304px] w-full object-cover lg:h-[536px]'
+                  width={1500}
+                  height={300}
+                  alt={product.name}
+                  blurDataURL={product.banner!}
+                  placeholder='blur'
+                  sizes='(max-width: 1500px) 100vw, 1500px'
+                  priority
+                />
+              </Link>
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious className='absolute left-4 top-1/2' />
+      <CarouselNext className='absolute right-4 top-1/2' />
+    </SCarousel>
+  );
+};
+
+export default Carousel;
+
+export const CarouselSkeleton = () => {
+  return <div className='skeleton h-[304px] w-full rounded-lg lg:h-[536px]' />;
+};
+
+
+//components\categories\Categories.tsx
+import Image from 'next/image';
+import Link from 'next/link';
+
+import Overlay from './Overlay';
+import Handbags from '../../public/images/categories/Handbags.webp';
+import Pants from '../../public/images/categories/Pants.webp';
+import Shirts from '../../public/images/categories/Shirts.webp';
+
+const Categories = () => {
+  return (
+    <div className='grid auto-rows-[300px] grid-cols-2 gap-4 md:auto-rows-[330px] md:grid-cols-4'>
+      <Link
+        href='/search?category=Shirts'
+        className='group relative col-span-2 row-span-1 overflow-hidden md:row-span-2'
+      >
+        <Image
+          src={Shirts}
+          alt='Collection of shirts'
+          width={500}
+          height={500}
+          className='h-full w-full object-cover'
+          placeholder='blur'
+          loading='lazy'
+        />
+        <Overlay category='Shirts' />
+      </Link>
+      <Link
+        href='/search?category=Shirts'
+        className='group relative col-span-2 overflow-hidden'
+      >
+        <Image
+          src={Pants}
+          alt='Collection of pants'
+          width={500}
+          height={500}
+          className='h-full w-full object-cover'
+          placeholder='blur'
+          loading='lazy'
+        />
+        <Overlay category='Pants' />
+      </Link>
+      <Link
+        href='/search?category=Handbags'
+        className='group relative col-span-2 overflow-hidden'
+      >
+        <Image
+          src={Handbags}
+          alt='Collection of handbags'
+          width={500}
+          height={500}
+          className='h-full w-full object-cover'
+          placeholder='blur'
+          loading='lazy'
+        />
+        <Overlay category='Handbags' />
+      </Link>
+    </div>
+  );
+};
+
+export default Categories;
+
+
+//components\categories\Overlay.tsx
+const Overlay = ({ category }: { category: string }) => {
+  return (
+    <div className='absolute inset-0 flex items-center justify-center bg-base-100/0 transition-all duration-300 group-hover:bg-base-100/50'>
+      <span className='translate-y-8 text-2xl font-semibold opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100'>
+        {category}
+      </span>
+    </div>
+  );
+};
+
+export default Overlay;
+
+
+//components\checkout\CheckoutSteps.tsx
+const CheckoutSteps = ({ current = 0 }) => {
+  return (
+    <ul className='steps steps-vertical mt-4 w-full lg:steps-horizontal'>
+      {['User Login', 'Shipping Address', 'Payment Method', 'Place Order'].map(
+        (step, index) => (
+          <li
+            key={step}
+            className={`step ${index <= current ? 'step-primary' : ''} `}
+          >
+            {step}
+          </li>
+        ),
+      )}
+    </ul>
+  );
+};
+export default CheckoutSteps;
+
+
+//components\footer\Footer.tsx
+const Footer = () => {
+  return (
+    <footer className='footer footer-center bg-base-300 p-4 text-base-content'>
+      <p>
+        Copyright &copy; {new Date().getFullYear()} - All rights reserved by
+        Fashion Corner
+      </p>
+    </footer>
+  );
+};
+
+export default Footer;
+
+
+//components\header\Header.tsx
+import { AlignJustify } from 'lucide-react';
+import Link from 'next/link';
+
+import Menu from './Menu';
+import { SearchBox } from './SearchBox';
+
+const Header = () => {
+  return (
+    <header>
+      <nav>
+        <div className='navbar justify-between bg-base-300'>
+          <div>
+            <label htmlFor='my-drawer' className='btn btn-square btn-ghost'>
+              <AlignJustify />
+            </label>
+            <Link
+              href='/'
+              className='ml-2 text-base font-semibold sm:ml-4 sm:text-lg'
+            >
+              Fashion Corner
+            </Link>
+          </div>
+          <Menu />
+        </div>
+        <div className='block bg-base-300 pb-3 text-center md:hidden'>
+          <SearchBox />
+        </div>
+      </nav>
+    </header>
+  );
+};
+
+export default Header;
+
+
+//components\header\Menu.tsx
+'use client';
+
+import { ChevronDown, Moon, ShoppingCart, Sun } from 'lucide-react';
+import Link from 'next/link';
+import { signOut, signIn, useSession } from 'next-auth/react';
+
+import useCartService from '@/lib/hooks/useCartStore';
+import useLayoutService from '@/lib/hooks/useLayout';
+
+import { SearchBox } from './SearchBox';
+
+const Menu = () => {
+  const { items, init } = useCartService();
+  const { data: session } = useSession();
+  const { theme, toggleTheme } = useLayoutService();
+
+  const signOutHandler = () => {
+    signOut({ callbackUrl: '/signin' });
+    init();
+  };
+
+  const handleClick = () => {
+    (document.activeElement as HTMLElement).blur();
+  };
+
+  return (
+    <>
+      <div className='hidden md:block'>
+        <SearchBox />
+      </div>
+      <ul className='flex gap-2'>
+        <li className='flex items-center gap-2 md:gap-4'>
+          <label className='swap swap-rotate'>
+            {/* this hidden checkbox controls the state */}
+            <input
+              type='checkbox'
+              checked={theme === 'light'}
+              onChange={toggleTheme}
+            />
+            <Sun className='swap-on' />
+            <Moon className='swap-off' />
+          </label>
+          <Link
+            href='/cart'
+            className='relative mr-1'
+            aria-label='Shopping Cart'
+          >
+            <ShoppingCart />
+            <span className='absolute -right-4 -top-4'>
+              {items.length !== 0 && (
+                <div className='badge badge-primary px-1.5'>
+                  {items.reduce((a, c) => a + c.qty, 0)}
+                </div>
+              )}
+            </span>
+          </Link>
+        </li>
+        {session && session.user ? (
+          <li>
+            <div className='dropdown dropdown-end dropdown-bottom'>
+              <label tabIndex={0} className='btn btn-ghost rounded-btn'>
+                {session.user.name}
+                <ChevronDown />
+              </label>
+              <ul
+                tabIndex={0}
+                className='menu dropdown-content z-[1] w-52 rounded-box bg-base-300 p-2 shadow '
+              >
+                {session.user.isAdmin && (
+                  <li onClick={handleClick}>
+                    <Link href='/admin/dashboard'>Admin Dashboard</Link>
+                  </li>
+                )}
+
+                <li onClick={handleClick}>
+                  <Link href='/order-history'>Order history </Link>
+                </li>
+                <li onClick={handleClick}>
+                  <Link href='/profile'>Profile</Link>
+                </li>
+                <li onClick={handleClick}>
+                  <button type='button' onClick={signOutHandler}>
+                    Sign out
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </li>
+        ) : (
+          <li>
+            <button
+              className='btn btn-ghost rounded-btn'
+              type='button'
+              onClick={() => signIn()}
+            >
+              Sign in
+            </button>
+          </li>
+        )}
+      </ul>
+    </>
+  );
+};
+
+export default Menu;
+
+
+//components\header\SearchBox.tsx
+'use client';
+
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next-nprogress-bar';
+import { useState } from 'react';
+import useSWR from 'swr';
+
+export const SearchBox = () => {
+  const searchParams = useSearchParams();
+  const q = searchParams.get('q') || '';
+  const category = searchParams.get('category') || 'all';
+  const router = useRouter();
+
+  const [formCategory, setFormCategory] = useState(category);
+  const [formQuery, setFormQuery] = useState(q);
+
+  const {
+    data: categories,
+    error,
+    isLoading,
+  } = useSWR('/api/products/categories');
+
+  if (error) return error.message;
+
+  if (isLoading) return <div className='skeleton flex h-12 w-[371px]'></div>;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/search?category=${formCategory}&q=${formQuery}`);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className='join'>
+        <select
+          name='category'
+          defaultValue={formCategory}
+          aria-label='Category'
+          className='join-item select select-bordered w-[90px]'
+          onChange={(e) => setFormCategory(e.target.value)}
+        >
+          <option value='all'>All</option>
+          {categories?.map((c: string) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <input
+          className='input join-item input-bordered w-40 sm:w-44'
+          placeholder='Search'
+          aria-label='Search'
+          defaultValue={q}
+          name='q'
+          onChange={(e) => setFormQuery(e.target.value)}
+        />
+        <button className='btn join-item input-bordered' type='submit'>
+          Search
+        </button>
+      </div>
+    </form>
+  );
+};
+
+
+//components\icons\Icons.tsx
+import { Truck, Wallet, LockKeyhole, Phone } from 'lucide-react';
+
+const Icons = () => {
+  return (
+    <div className='grid grid-cols-2 gap-6 gap-x-2 md:gap-x-6 lg:grid-cols-4'>
+      <div className='flex flex-col justify-center gap-4 bg-base-300 px-4 py-8 md:px-12'>
+        <Truck width={48} height={48} strokeWidth={1} />
+        <div className='flex flex-col gap-2'>
+          <p>
+            <strong>Free Shipping</strong>
+          </p>
+          <p>Order above $200</p>
+        </div>
+      </div>
+      <div className='flex flex-col justify-center gap-4 bg-base-300 px-4 py-8 md:px-12'>
+        <Wallet width={48} height={48} strokeWidth={1} />
+        <div className='flex flex-col gap-2'>
+          <p>
+            <strong>Money-back</strong>
+          </p>
+          <p>30 days guarantee0</p>
+        </div>
+      </div>
+      <div className='flex flex-col justify-center gap-4 bg-base-300 px-4 py-8 md:px-12'>
+        <LockKeyhole width={48} height={48} strokeWidth={1} />
+        <div className='flex flex-col gap-2'>
+          <p>
+            <strong>Secure Payments</strong>
+          </p>
+          <p>Secured by Stripe</p>
+        </div>
+      </div>
+      <div className='flex flex-col justify-center gap-4 bg-base-300 px-4 py-8 md:px-12'>
+        <Phone width={48} height={48} strokeWidth={1} />
+        <div className='flex flex-col gap-2'>
+          <p>
+            <strong>24/7 Support</strong>
+          </p>
+          <p>Phone and Email support</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Icons;
+
+
+//components\products\AddToCart.tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import useCartService from '@/lib/hooks/useCartStore';
+import { OrderItem } from '@/lib/models/OrderModel';
+
+const AddToCart = ({ item }: { item: OrderItem }) => {
+  const router = useRouter();
+  const { items, increase, decrease } = useCartService();
+  const [existItem, setExistItem] = useState<OrderItem | undefined>();
+
+  useEffect(() => {
+    setExistItem(items.find((x) => x.slug === item.slug));
+  }, [item, items]);
+
+  const addToCartHandler = () => {
+    increase(item);
+  };
+
+  return existItem ? (
+    <div>
+      <button className='btn' type='button' onClick={() => decrease(existItem)}>
+        -
+      </button>
+      <span className='px-2'>{existItem.qty}</span>
+      <button className='btn' type='button' onClick={() => increase(existItem)}>
+        +
+      </button>
+    </div>
+  ) : (
+    <button
+      className='btn btn-primary w-full'
+      type='button'
+      onClick={addToCartHandler}
+    >
+      Add to cart
+    </button>
+  );
+};
+
+export default AddToCart;
+
+
+//components\products\ProductItem.tsx
+import Image from 'next/image';
+import Link from 'next/link';
+import { getPlaiceholder } from 'plaiceholder';
+
+import { Product } from '@/lib/models/ProductModel';
+
+import { Rating } from './Rating';
+
+const ProductItem = async ({ product }: { product: Product }) => {
+  const buffer = await fetch(product.image).then(async (res) =>
+    Buffer.from(await res.arrayBuffer()),
+  );
+
+  const { base64 } = await getPlaiceholder(buffer);
+
+  return (
+    <div className='card mb-4 bg-base-300'>
+      <figure>
+        <Link
+          href={`/product/${product.slug}`}
+          className='relative aspect-square h-full w-full'
+        >
+          <Image
+            src={product.image}
+            alt={product.name}
+            placeholder='blur'
+            blurDataURL={base64}
+            width={350}
+            height={350}
+            className='h-full w-full object-cover'
+          />
+        </Link>
+      </figure>
+      <div className='card-body'>
+        <Link href={`/product/${product.slug}`}>
+          <h3 className='card-title line-clamp-1 font-normal'>
+            {product.name}
+          </h3>
+        </Link>
+        <Rating value={product.rating} caption={`(${product.name})`} isCard />
+        <p className='line-clamp-1'>{product.brand}</p>
+        <div className='card-actions flex items-center justify-between'>
+          <span className='text-2xl'>${product.price}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductItem;
+
+
+//components\products\ProductItems.tsx
+import productService from '@/lib/services/productService';
+import { convertDocToObj, delay } from '@/lib/utils';
+
+import ProductItem from './ProductItem';
+
+const ProductItems = async () => {
+  await delay(4000);
+  const latestProducts = await productService.getLatest();
+
+  return (
+    <div>
+      <h2 className='my-2 text-2xl md:my-4'>Latest Products</h2>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:grid-cols-4'>
+        {latestProducts.map((product) => (
+          <ProductItem key={product.slug} product={convertDocToObj(product)} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default ProductItems;
+
+const ProductItemSkeleton = () => {
+  return (
+    <div className='card mb-4 bg-base-300'>
+      <div>
+        <div className='skeleton relative aspect-square h-full w-full' />
+      </div>
+      <div className='card-body'>
+        <div className='skeleton mb-2 h-6 w-3/4' />
+        <div className='skeleton mb-2 h-4 w-1/2' />
+        <div className='skeleton mb-2 h-4 w-1/3' />
+        <div className='card-actions flex items-center justify-between'>
+          <div className='skeleton h-8 w-20' />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const ProductItemsSkeleton = ({
+  qty,
+  name,
+}: {
+  qty: number;
+  name: string;
+}) => {
+  return (
+    <div>
+      <h2 className='my-2 text-2xl md:my-4'>{name}</h2>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:grid-cols-4'>
+        {Array.from({ length: qty }).map((_, i) => {
+          return <ProductItemSkeleton key={i} />;
+        })}
+      </div>
+    </div>
+  );
+};
+
+
+//components\products\Rating.tsx
+import { cn } from '@/lib/utils';
+
+export const Rating = ({
+  value,
+  caption,
+  isCard,
+}: {
+  value: number;
+  caption: string;
+  isCard?: boolean;
+}) => {
+  const Full = () => (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      className='h-auto w-5 fill-current text-yellow-500'
+      viewBox='0 0 16 16'
+    >
+      <path d='M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z' />
+    </svg>
+  );
+  const Half = () => (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      className='h-auto w-5 fill-current text-yellow-500'
+      viewBox='0 0 16 16'
+    >
+      <path d='M5.354 5.119 7.538.792A.516.516 0 0 1 8 .5c.183 0 .366.097.465.292l2.184 4.327 4.898.696A.537.537 0 0 1 16 6.32a.548.548 0 0 1-.17.445l-3.523 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256a.52.52 0 0 1-.146.05c-.342.06-.668-.254-.6-.642l.83-4.73L.173 6.765a.55.55 0 0 1-.172-.403.58.58 0 0 1 .085-.302.513.513 0 0 1 .37-.245l4.898-.696zM8 12.027a.5.5 0 0 1 .232.056l3.686 1.894-.694-3.957a.565.565 0 0 1 .162-.505l2.907-2.77-4.052-.576a.525.525 0 0 1-.393-.288L8.001 2.223 8 2.226v9.8z' />
+    </svg>
+  );
+  const Empty = () => (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      className='h-auto w-5 fill-current text-yellow-500'
+      viewBox='0 0 16 16'
+    >
+      <path d='M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288L8 2.223l1.847 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.565.565 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z' />
+    </svg>
+  );
+
+  return (
+    <div
+      className={cn(`flex flex-wrap gap-2 ${isCard && 'flex-col'} ${!isCard && 'items-center'}
+    `)}
+    >
+      <div className='flex gap-1'>
+        {value >= 1 ? <Full /> : value >= 0.5 ? <Half /> : <Empty />}
+        {value >= 2 ? <Full /> : value >= 1.5 ? <Half /> : <Empty />}
+        {value >= 3 ? <Full /> : value >= 2.5 ? <Half /> : <Empty />}
+        {value >= 4 ? <Full /> : value >= 3.5 ? <Half /> : <Empty />}
+        {value >= 5 ? <Full /> : value >= 4.5 ? <Half /> : <Empty />}
+      </div>
+
+      {caption && <div className='text-xs'>{caption}</div>}
+    </div>
+  );
+};
+
+
+//components\readMore\ReadMore.tsx
+'use client';
+
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
+
+import { cn } from '@/lib/utils';
+
+const ReadMore = ({ children }: { children: React.ReactNode }) => {
+  const [isMore, setIsMore] = useState(false);
+
+  return (
+    <div className='mb-10 py-5 md:py-10'>
+      <div
+        className={cn(
+          `relative mx-auto w-full overflow-hidden ${isMore ? 'h-full' : 'h-[400px]'}`,
+        )}
+      >
+        {!isMore && (
+          <div className='absolute bottom-0 flex h-2/3 w-full items-center bg-gradient-to-b from-transparent to-base-100'>
+            <button
+              onClick={() => setIsMore(true)}
+              className='btn mx-auto mt-2 self-end'
+            >
+              Read More
+              <ChevronDown />
+            </button>
+          </div>
+        )}
+        {children}
+        <div className='flex items-center'>
+          {isMore && (
+            <button onClick={() => setIsMore(false)} className='btn mx-auto'>
+              Hide
+              <ChevronUp />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReadMore;
+
+
+//components\readMore\Text.tsx
+import React from 'react';
+
+const Text = () => {
+  return (
+    <div>
+      <h1 className='mb-4 text-3xl font-bold'>
+        Fashion Corner: Leading E-Commerce Clothing Hub
+      </h1>
+      <h2 className='mb-2 text-2xl font-semibold'>
+        Your Ultimate Destination for Trendsetting Apparel
+      </h2>
+      <p className='mb-4'>
+        At Fashion Corner, we believe that style is a way to say who you are
+        without having to speak. Explore our vast selection of apparel,
+        including trendy hoodies, elegant shirts, casual t-shirts, and much
+        more, all crafted to enhance your wardrobe with style and
+        sophistication. Whether you&apos;re updating your everyday look or
+        shopping for a special occasion, our extensive collection ensures that
+        every style preference and fashion need is catered to.
+      </p>
+      <p className='mb-4'>
+        Our commitment to quality and staying in tune with the latest trends
+        ensures that every piece in our collection not only offers comfort but
+        also a high-fashion aesthetic. From the perfect fit of our tailored
+        shirts to the soft embrace of our casual tees, each item is meticulously
+        designed with the finest materials to offer you the best in fashion and
+        comfort. Our user-friendly online store makes shopping effortless,
+        delivering your favorite styles right to your doorstep with just a few
+        clicks.
+      </p>
+      <p className='mb-4'>
+        Dive into our diverse clothing lines to find your unique style. Whether
+        it’s the casual comfort of our well-crafted denim jeans, the classic
+        charm of our sweater collection, or the bold statement pieces from our
+        limited edition designer collaborations, Fashion Corner has it all. Each
+        product is showcased with detailed descriptions and high-quality images
+        to give you a close-up view of the fabric, fit, and colors available.
+      </p>
+      <p className='mb-4'>
+        Stay ahead of fashion trends with our new arrivals that are constantly
+        updated to keep your style fresh and exciting. Sign up for our
+        newsletter to receive timely updates on the latest collections, seasonal
+        sales, and exclusive discounts tailored just for you. At Fashion Corner,
+        fashion meets convenience with a touch of elegance, providing you with
+        an unrivaled online shopping experience.
+      </p>
+      <h2 className='mb-2 text-2xl font-semibold'>
+        Why Choose Fashion Corner?
+      </h2>
+      <p className='mb-4'>
+        At Fashion Corner, sustainability meets style. Our dedication to
+        sustainable fashion sets us apart, making every purchase a testament to
+        your commitment to environmental responsibility. Our eco-friendly
+        materials and ethical production processes aim to minimize environmental
+        impact while providing you with high-quality, durable clothing that you
+        can feel good about.
+      </p>
+      <p className='mb-4'>
+        We also take pride in offering exceptional customer service. Our
+        friendly and knowledgeable customer support team is always eager to
+        assist you with any questions, ensuring a seamless shopping experience
+        from start to finish. With our hassle-free returns and exchanges policy,
+        shopping at Fashion Corner is completely worry-free.
+      </p>
+      <p className='mb-4'>
+        Moreover, our loyalty program rewards you for every purchase, turning
+        every dollar spent into points that can be redeemed for discounts on
+        future orders. Join our community of fashion enthusiasts and get
+        exclusive access to VIP events and sneak peeks at upcoming products.
+      </p>
+      <p className='mb-4'>
+        Immerse yourself in the world of Fashion Corner today. Discover our
+        curated selections, where each piece tells a story of quality
+        craftsmanship and style excellence. Refresh your wardrobe with key
+        pieces that you will love and cherish, and experience the perfect blend
+        of style, quality, and sustainability. Shop at Fashion Corner now to see
+        what fashion wonders await you.
+      </p>
+      <h2 className='mb-2 text-2xl font-semibold'>
+        Discover Exclusive Styles Only Available at Fashion Corner
+      </h2>
+      <p className='mb-4'>
+        Unearth a treasure trove of unique fashion pieces that you won&apos;t
+        find anywhere else. Our exclusive collections are designed with the
+        fashion-forward individual in mind, featuring limited edition apparel
+        that makes a bold statement. From runway-inspired designs to avant-garde
+        accessories, each item is a masterpiece that embodies creativity and
+        distinction.
+      </p>
+      <p className='mb-4'>
+        Our focus on exclusive offerings ensures that our customers enjoy a
+        distinct shopping experience that elevates their style to new heights.
+        By continually partnering with innovative designers and brands, we bring
+        fresh, dynamic collections that are at the forefront of fashion trends.
+        Explore these unique styles and add a touch of uniqueness to your
+        wardrobe that truly sets you apart from the crowd.
+      </p>
+      <p className='mb-4'>
+        Join the Fashion Corner family today and tap into the world of exclusive
+        fashion. Let us be your guide to discovering new styles that inspire and
+        empower you to express your individuality. Whether you&apos;re looking
+        for something bold and expressive or subtle and sophisticated, find it
+        at Fashion Corner.
+      </p>
+    </div>
+  );
+};
+
+export default Text;
+
+
+//components\slider\CardSlider.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from '@/components/ui/carousel';
+
+interface IProducts {
+  children: React.ReactNode;
+}
+
+const CardSlider = ({ children }: IProducts) => {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
+    api.on('select', () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
+
+  return (
+    <Carousel setApi={setApi} opts={{ loop: true }}>
+      <CarouselContent>
+        {/* {products.map((product) => (
+          <CarouselItem
+            key={product.slug}
+            className='sm:basis-1/2 md:basis-1/3 lg:basis-1/4'
+          >
+            <ProductItem product={convertDocToObj(product)} />
+          </CarouselItem>
+        ))} */}
+        {children}
+      </CarouselContent>
+      <CarouselPrevious className='absolute left-4 top-1/2' disabled={false} />
+      <CarouselNext className='absolute right-4 top-1/2' disabled={false} />
+    </Carousel>
+  );
+};
+
+export default CardSlider;
+
+
+//components\slider\Slider.tsx
+import ProductItem from '@/components/products/ProductItem';
+import CardSlider from '@/components/slider/CardSlider';
+import { CarouselItem } from '@/components/ui/carousel';
+import productService from '@/lib/services/productService';
+import { convertDocToObj } from '@/lib/utils';
+
+const Slider = async () => {
+  const topRated = await productService.getTopRated();
+
+  return (
+    <div>
+      <h2 className='my-2 text-2xl md:my-4'>Top Rated</h2>
+      <CardSlider>
+        {/*Wrap for SSR */}
+        {topRated.map((product) => (
+          <CarouselItem
+            key={product.slug}
+            className='sm:basis-1/2 md:basis-1/3 lg:basis-1/4'
+          >
+            <ProductItem product={convertDocToObj(product)} />
+          </CarouselItem>
+        ))}
+      </CardSlider>
+    </div>
+  );
+};
+
+export default Slider;
+
+
+//components\ui\button.tsx
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
+import * as React from 'react';
+
+import { cn } from '@/lib/utils';
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive:
+          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        outline:
+          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+        secondary:
+          'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        link: 'text-primary underline-offset-4 hover:underline',
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        lg: 'h-11 rounded-md px-8',
+        icon: 'h-10 w-10',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  },
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  },
+);
+Button.displayName = 'Button';
+
+export { Button, buttonVariants };
+
+
+//components\ui\carousel.tsx
+'use client';
+
+import useEmblaCarousel, {
+  type UseEmblaCarouselType,
+} from 'embla-carousel-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+type CarouselApi = UseEmblaCarouselType[1];
+type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
+type CarouselOptions = UseCarouselParameters[0];
+type CarouselPlugin = UseCarouselParameters[1];
+
+type CarouselProps = {
+  opts?: CarouselOptions;
+  plugins?: CarouselPlugin;
+  orientation?: 'horizontal' | 'vertical';
+  setApi?: (api: CarouselApi) => void;
+};
+
+type CarouselContextProps = {
+  carouselRef: ReturnType<typeof useEmblaCarousel>[0];
+  api: ReturnType<typeof useEmblaCarousel>[1];
+  scrollPrev: () => void;
+  scrollNext: () => void;
+  canScrollPrev: boolean;
+  canScrollNext: boolean;
+} & CarouselProps;
+
+const CarouselContext = React.createContext<CarouselContextProps | null>(null);
+
+function useCarousel() {
+  const context = React.useContext(CarouselContext);
+
+  if (!context) {
+    throw new Error('useCarousel must be used within a <Carousel />');
+  }
+
+  return context;
+}
+
+const Carousel = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & CarouselProps
+>(
+  (
+    {
+      orientation = 'horizontal',
+      opts,
+      setApi,
+      plugins,
+      className,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    const [carouselRef, api] = useEmblaCarousel(
+      {
+        ...opts,
+        axis: orientation === 'horizontal' ? 'x' : 'y',
+      },
+      plugins,
+    );
+    const [canScrollPrev, setCanScrollPrev] = React.useState(false);
+    const [canScrollNext, setCanScrollNext] = React.useState(false);
+
+    const onSelect = React.useCallback((api: CarouselApi) => {
+      if (!api) {
+        return;
+      }
+
+      setCanScrollPrev(api.canScrollPrev());
+      setCanScrollNext(api.canScrollNext());
+    }, []);
+
+    const scrollPrev = React.useCallback(() => {
+      api?.scrollPrev();
+    }, [api]);
+
+    const scrollNext = React.useCallback(() => {
+      api?.scrollNext();
+    }, [api]);
+
+    const handleKeyDown = React.useCallback(
+      (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          scrollPrev();
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          scrollNext();
+        }
+      },
+      [scrollPrev, scrollNext],
+    );
+
+    React.useEffect(() => {
+      if (!api || !setApi) {
+        return;
+      }
+
+      setApi(api);
+    }, [api, setApi]);
+
+    React.useEffect(() => {
+      if (!api) {
+        return;
+      }
+
+      onSelect(api);
+      api.on('reInit', onSelect);
+      api.on('select', onSelect);
+
+      return () => {
+        api?.off('select', onSelect);
+      };
+    }, [api, onSelect]);
+
+    return (
+      <CarouselContext.Provider
+        value={{
+          carouselRef,
+          api: api,
+          opts,
+          orientation:
+            orientation || (opts?.axis === 'y' ? 'vertical' : 'horizontal'),
+          scrollPrev,
+          scrollNext,
+          canScrollPrev,
+          canScrollNext,
+        }}
+      >
+        <div
+          ref={ref}
+          onKeyDownCapture={handleKeyDown}
+          className={cn('relative', className)}
+          role='region'
+          aria-roledescription='carousel'
+          {...props}
+        >
+          {children}
+        </div>
+      </CarouselContext.Provider>
+    );
+  },
+);
+Carousel.displayName = 'Carousel';
+
+const CarouselContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const { carouselRef, orientation } = useCarousel();
+
+  return (
+    <div ref={carouselRef} className='overflow-hidden'>
+      <div
+        ref={ref}
+        className={cn(
+          'flex',
+          orientation === 'horizontal' ? '-ml-4' : '-mt-4 flex-col',
+          className,
+        )}
+        {...props}
+      />
+    </div>
+  );
+});
+CarouselContent.displayName = 'CarouselContent';
+
+const CarouselItem = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const { orientation } = useCarousel();
+
+  return (
+    <div
+      ref={ref}
+      role='group'
+      aria-roledescription='slide'
+      className={cn(
+        'min-w-0 shrink-0 grow-0 basis-full',
+        orientation === 'horizontal' ? 'pl-4' : 'pt-4',
+        className,
+      )}
+      {...props}
+    />
+  );
+});
+CarouselItem.displayName = 'CarouselItem';
+
+const CarouselPrevious = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof Button>
+>(({ className, variant = 'outline', size = 'icon', ...props }, ref) => {
+  const { orientation, scrollPrev, canScrollPrev } = useCarousel();
+
+  return (
+    <Button
+      ref={ref}
+      variant={variant}
+      size={size}
+      className={cn(
+        'absolute  h-8 w-8 rounded-full',
+        orientation === 'horizontal'
+          ? '-left-12 top-1/2 -translate-y-1/2'
+          : '-top-12 left-1/2 -translate-x-1/2 rotate-90',
+        className,
+      )}
+      disabled={!canScrollPrev}
+      onClick={scrollPrev}
+      {...props}
+    >
+      <ArrowLeft className='h-4 w-4' />
+      <span className='sr-only'>Previous slide</span>
+    </Button>
+  );
+});
+CarouselPrevious.displayName = 'CarouselPrevious';
+
+const CarouselNext = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof Button>
+>(({ className, variant = 'outline', size = 'icon', ...props }, ref) => {
+  const { orientation, scrollNext, canScrollNext } = useCarousel();
+
+  return (
+    <Button
+      ref={ref}
+      variant={variant}
+      size={size}
+      className={cn(
+        'absolute h-8 w-8 rounded-full',
+        orientation === 'horizontal'
+          ? '-right-12 top-1/2 -translate-y-1/2'
+          : '-bottom-12 left-1/2 -translate-x-1/2 rotate-90',
+        className,
+      )}
+      disabled={!canScrollNext}
+      onClick={scrollNext}
+      {...props}
+    >
+      <ArrowRight className='h-4 w-4' />
+      <span className='sr-only'>Next slide</span>
+    </Button>
+  );
+});
+CarouselNext.displayName = 'CarouselNext';
+
+export {
+  type CarouselApi,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+};
+
+
+//components\ClientProvider.tsx
+'use client';
+
+import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
+import { useEffect, useState } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
+import { SWRConfig } from 'swr';
+
+import { cartStore } from '@/lib/hooks/useCartStore';
+import useLayoutService from '@/lib/hooks/useLayout';
+
+const ClientProvider = ({ children }: { children: React.ReactNode }) => {
+  const { theme } = useLayoutService();
+  const [selectedTheme, setSelectedTheme] = useState('system');
+
+  useEffect(() => {
+    setSelectedTheme(theme);
+  }, [theme]);
+
+  const updateStore = () => {
+    cartStore.persist.rehydrate();
+  };
+
+  // cart will be refreshed on cart change  n browser
+  useEffect(() => {
+    document.addEventListener('visibilitychange', updateStore);
+    window.addEventListener('focus', updateStore);
+    return () => {
+      document.removeEventListener('visibilitychange', updateStore);
+      window.removeEventListener('focus', updateStore);
+    };
+  }, []);
+
+  return (
+    <SWRConfig
+      value={{
+        onError: (error, key) => {
+          toast.error(error.message);
+        },
+        fetcher: async (resource, init) => {
+          const res = await fetch(resource, init);
+          if (!res.ok) {
+            throw new Error('An error occurred while fetching the data.');
+          }
+          return res.json();
+        },
+      }}
+    >
+      <div data-theme={selectedTheme} className='flex min-h-screen flex-col'>
+        <Toaster toastOptions={{ className: 'toaster-con' }} />
+        <ProgressBar />
+        {children}
+      </div>
+    </SWRConfig>
+  );
+};
+
+export default ClientProvider;
+
+
+//components\DrawerButton.tsx
+'use client';
+
+import useLayoutService from '@/lib/hooks/useLayout';
+
+const DrawerButton = () => {
+  const { drawerOpen, toggleDrawer } = useLayoutService();
+
+  return (
+    <input
+      id='my-drawer'
+      type='checkbox'
+      className='drawer-toggle'
+      checked={drawerOpen}
+      onChange={toggleDrawer}
+    />
+  );
+};
+
+export default DrawerButton;
+
+
+//components\Providers.tsx
+import { SessionProvider } from 'next-auth/react';
+
+import { auth } from '@/lib/auth';
+
+import ClientProvider from './ClientProvider';
+
+const Providers = async ({ children }: { children: React.ReactNode }) => {
+  const session = await auth();
+  return (
+    <SessionProvider session={session}>
+      <ClientProvider>{children}</ClientProvider>
+    </SessionProvider>
+  );
+};
+
+export default Providers;
+
+
+//components\Sidebar.tsx
+'use client';
+
+import Link from 'next/link';
+import useSWR from 'swr';
+
+import useLayoutService from '@/lib/hooks/useLayout';
+
+const Sidebar = () => {
+  const { toggleDrawer } = useLayoutService();
+  const {
+    data: categories,
+    error,
+    isLoading,
+  } = useSWR('/api/products/categories');
+
+  if (error) return error.message;
+  if (isLoading || !categories) return 'Loading...';
+
+  return (
+    <ul className='menu min-h-full w-80 bg-base-200 p-4 text-base-content'>
+      <li>
+        <h2 className='text-xl'>Shop Categories</h2>
+      </li>
+      {categories.map((category: string) => (
+        <li key={category}>
+          <Link href={`/search?category=${category}`} onClick={toggleDrawer}>
+            {category}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+export default Sidebar;
+
+
+//components\Wrapper.tsx
+const Wrapper = ({ children }: { children: React.ReactNode }) => {
+  return <div className='mx-auto w-full max-w-[1120px]'>{children}</div>;
+};
+
+export default Wrapper;
+
+
+//lib\hooks\useCartStore.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+import { OrderItem, ShippingAddress } from '../models/OrderModel';
+import { round2 } from '../utils';
+
+type Cart = {
+  items: OrderItem[];
+  itemsPrice: number;
+  taxPrice: number;
+  shippingPrice: number;
+  totalPrice: number;
+
+  paymentMethod: string;
+  shippingAddress: ShippingAddress;
+};
+
+const initialState: Cart = {
+  items: [],
+  itemsPrice: 0,
+  taxPrice: 0,
+  shippingPrice: 0,
+  totalPrice: 0,
+  paymentMethod: 'PayPal',
+  shippingAddress: {
+    fullName: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    country: '',
+  },
+};
+
+export const cartStore = create<Cart>()(
+  persist(() => initialState, {
+    name: 'cartStore',
+  }),
+);
+
+const useCartService = () => {
+  const {
+    items,
+    itemsPrice,
+    taxPrice,
+    shippingPrice,
+    totalPrice,
+    paymentMethod,
+    shippingAddress,
+  } = cartStore();
+
+  return {
+    items,
+    itemsPrice,
+    taxPrice,
+    shippingPrice,
+    totalPrice,
+    paymentMethod,
+    shippingAddress,
+    increase: (item: OrderItem) => {
+      const exist = items.find((x) => x.slug === item.slug);
+
+      const updatedCartItems = exist
+        ? items.map((x) =>
+            x.slug === item.slug ? { ...exist, qty: exist.qty + 1 } : x,
+          )
+        : [...items, { ...item, qty: 1 }];
+
+      const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
+        calcPrice(updatedCartItems);
+      cartStore.setState({
+        items: updatedCartItems,
+        itemsPrice,
+        shippingPrice,
+        taxPrice,
+        totalPrice,
+      });
+    },
+    decrease: (item: OrderItem) => {
+      const exist = items.find((x) => x.slug === item.slug);
+      if (!exist) return;
+
+      const updatedCartItems =
+        exist.qty === 1
+          ? items.filter((x) => x.slug !== item.slug)
+          : items.map((x) =>
+              x.slug === item.slug ? { ...exist, qty: exist.qty - 1 } : x,
+            );
+
+      const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
+        calcPrice(updatedCartItems);
+      cartStore.setState({
+        items: updatedCartItems,
+        itemsPrice,
+        shippingPrice,
+        taxPrice,
+        totalPrice,
+      });
+    },
+    saveShippingAddress: (shippingAddress: ShippingAddress) => {
+      cartStore.setState({
+        shippingAddress,
+      });
+    },
+    savePaymentMethod: (paymentMethod: string) => {
+      cartStore.setState({
+        paymentMethod,
+      });
+    },
+    clear: () => {
+      cartStore.setState({
+        items: [],
+      });
+    },
+    init: () => cartStore.setState(initialState),
+  };
+};
+
+export default useCartService;
+
+export const calcPrice = (items: OrderItem[]) => {
+  const itemsPrice = round2(
+      items.reduce((acc, item) => acc + item.price * item.qty, 0),
+    ),
+    shippingPrice = round2(itemsPrice > 100 ? 0 : 100),
+    taxPrice = round2(Number(0.15 * itemsPrice)),
+    totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
+  return { itemsPrice, shippingPrice, taxPrice, totalPrice };
+};
+
+
+//lib\hooks\useLayout.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+type Layout = {
+  theme: string;
+  drawerOpen: boolean;
+};
+const initialState: Layout = {
+  theme: 'system',
+  drawerOpen: false,
+};
+
+export const layoutStore = create<Layout>()(
+  persist(() => initialState, {
+    name: 'layoutStore',
+  }),
+);
+
+export default function useLayoutService() {
+  const { theme, drawerOpen } = layoutStore();
+
+  return {
+    theme,
+    drawerOpen,
+    toggleTheme: () => {
+      layoutStore.setState({
+        theme: theme === 'dark' ? 'light' : 'dark',
+      });
+    },
+    toggleDrawer: () => {
+      layoutStore.setState({
+        drawerOpen: !drawerOpen,
+      });
+    },
+  };
+}
+
+
+//lib\models\OrderModel.ts
+import mongoose from 'mongoose';
+
+const orderSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    items: [
+      {
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Product',
+          required: true,
+        },
+        name: { type: String, required: true },
+        slug: { type: String, required: true },
+        qty: { type: Number, required: true },
+        image: { type: String, required: true },
+        price: { type: Number, required: true },
+      },
+    ],
+    shippingAddress: {
+      fullName: { type: String, required: true },
+      address: { type: String, required: true },
+      city: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true },
+    },
+    paymentMethod: { type: String, required: true },
+    paymentResult: {
+      id: String,
+      status: String,
+      email_address: String,
+    },
+    itemsPrice: { type: Number, required: true },
+    shippingPrice: { type: Number, required: true },
+    taxPrice: { type: Number, required: true },
+    totalPrice: { type: Number, required: true },
+    isPaid: { type: Boolean, required: true, default: false },
+    isDelivered: { type: Boolean, required: true, default: false },
+    paidAt: { type: Date },
+    deliveredAt: { type: Date },
+  },
+  {
+    timestamps: true,
+  },
+);
+
+const OrderModel =
+  mongoose.models.Order || mongoose.model('Order', orderSchema);
+
+export default OrderModel;
+
+export type Order = {
+  _id: string;
+  user?: { name: string };
+  items: [OrderItem];
+  shippingAddress: {
+    fullName: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+  paymentMethod: string;
+  paymentResult?: { id: string; status: string; email_address: string };
+  itemsPrice: number;
+  shippingPrice: number;
+  taxPrice: number;
+  totalPrice: number;
+  isPaid: boolean;
+  isDelivered: boolean;
+  paidAt?: string;
+  deliveredAt?: string;
+  createdAt: string;
+};
+
+export type OrderItem = {
+  name: string;
+  slug: string;
+  qty: number;
+  image: string;
+  price: number;
+  color: string;
+  size: string;
+};
+
+export type ShippingAddress = {
+  fullName: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+};
+
+
+//lib\models\ProductModel.ts
+import mongoose from 'mongoose';
+
+export type Product = {
+  _id?: string;
+  name: string;
+  slug: string;
+  image: string;
+  banner?: string;
+  price: number;
+  brand: string;
+  description: string;
+  category: string;
+  rating: number;
+  numReviews: number;
+  countInStock: number;
+  colors?: [];
+  sizes?: [];
+};
+
+const productSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true, unique: true },
+    category: { type: String, required: true },
+    image: { type: String, required: true },
+    price: { type: Number, required: true },
+    brand: { type: String, required: true },
+    rating: { type: Number, required: true, default: 0 },
+    numReviews: { type: Number, required: true, default: 0 },
+    countInStock: { type: Number, required: true, default: 0 },
+    description: { type: String, required: true },
+    isFeatured: { type: Boolean, default: false },
+    banner: String,
+  },
+  {
+    timestamps: true,
+  },
+);
+
+const ProductModel =
+  mongoose.models.Product || mongoose.model('Product', productSchema);
+
+export default ProductModel;
+
+
+//lib\models\UserModel.ts
+import mongoose from 'mongoose';
+
+export type User = {
+  _id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+};
+
+const UserSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    isAdmin: { type: Boolean, required: true, default: false },
+  },
+  { timestamps: true },
+);
+
+const UserModel = mongoose.models?.User || mongoose.model('User', UserSchema);
+
+export default UserModel;
+
+
+//lib\services\productService.ts
+import { cache } from 'react';
+
+import dbConnect from '@/lib/dbConnect';
+import ProductModel, { Product } from '@/lib/models/ProductModel';
+
+export const revalidate = 3600;
+
+const getLatest = cache(async () => {
+  await dbConnect();
+  const products = await ProductModel.find({})
+    .sort({ _id: -1 })
+    .limit(8)
+    .lean(); // Converts the MongoDB documents to plain JavaScript objects
+  return products as Product[];
+});
+
+const getTopRated = cache(async () => {
+  await dbConnect();
+  const products = await ProductModel.find({})
+    .sort({ rating: -1 }) // Sort by rating in descending order
+    .limit(8)
+    .lean(); // Converts the MongoDB documents to plain JavaScript objects
+  return products as Product[];
+});
+
+// intentionally disable Next.js Cache to better demo
+const getFeatured = async () => {
+  await dbConnect();
+  const products = await ProductModel.find({ isFeatured: true })
+    .limit(3)
+    .lean();
+  return products as Product[];
+};
+
+const getBySlug = cache(async (slug: string) => {
+  await dbConnect();
+  const product = await ProductModel.findOne({ slug }).lean();
+  return product as Product;
+});
+
+const PAGE_SIZE = 3;
+const getByQuery = cache(
+  async ({
+    q,
+    category,
+    sort,
+    price,
+    rating,
+    page = '1',
+  }: {
+    q: string;
+    category: string;
+    price: string;
+    rating: string;
+    sort: string;
+    page: string;
+  }) => {
+    await dbConnect();
+
+    const queryFilter =
+      q && q !== 'all'
+        ? {
+            name: {
+              $regex: q,
+              $options: 'i',
+            },
+          }
+        : {};
+    const categoryFilter = category && category !== 'all' ? { category } : {};
+    const ratingFilter =
+      rating && rating !== 'all'
+        ? {
+            rating: {
+              $gte: Number(rating),
+            },
+          }
+        : {};
+    // 10-50
+    const priceFilter =
+      price && price !== 'all'
+        ? {
+            price: {
+              $gte: Number(price.split('-')[0]),
+              $lte: Number(price.split('-')[1]),
+            },
+          }
+        : {};
+    const order: Record<string, 1 | -1> =
+      sort === 'lowest'
+        ? { price: 1 }
+        : sort === 'highest'
+          ? { price: -1 }
+          : sort === 'toprated'
+            ? { rating: -1 }
+            : { _id: -1 };
+
+    const categories = await ProductModel.find().distinct('category');
+    const products = await ProductModel.find(
+      {
+        ...queryFilter,
+        ...categoryFilter,
+        ...priceFilter,
+        ...ratingFilter,
+      },
+      '-reviews',
+    )
+      .sort(order)
+      .skip(PAGE_SIZE * (Number(page) - 1))
+      .limit(PAGE_SIZE)
+      .lean();
+
+    const countProducts = await ProductModel.countDocuments({
+      ...queryFilter,
+      ...categoryFilter,
+      ...priceFilter,
+      ...ratingFilter,
+    });
+
+    return {
+      products: products as Product[],
+      countProducts,
+      page,
+      pages: Math.ceil(countProducts / PAGE_SIZE),
+      categories,
+    };
+  },
+);
+
+const getCategories = cache(async () => {
+  await dbConnect();
+  const categories = await ProductModel.find().distinct('category');
+  return categories;
+});
+
+const productService = {
+  getLatest,
+  getFeatured,
+  getBySlug,
+  getByQuery,
+  getCategories,
+  getTopRated,
+};
+
+export default productService;
+
+
+//lib\auth.ts
+import bcrypt from 'bcryptjs';
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+
+import dbConnect from './dbConnect';
+import UserModel from './models/UserModel';
+
+export const config = {
+  providers: [
+    CredentialsProvider({
+      credentials: {
+        email: {
+          type: 'email',
+        },
+        password: {
+          type: 'password',
+        },
+      },
+      async authorize(credentials) {
+        await dbConnect();
+        if (credentials === null) return null;
+
+        const user = await UserModel.findOne({ email: credentials.email });
+
+        if (user) {
+          const isMatch = await bcrypt.compare(
+            credentials.password as string,
+            user.password,
+          );
+          if (isMatch) {
+            return user;
+          }
+        }
+        return null;
+      },
+    }),
+  ],
+  // custom pages for sign in and register
+  pages: {
+    signIn: '/signin',
+    newUser: '/register',
+    error: '/error',
+  },
+  callbacks: {
+    async jwt({ user, trigger, session, token }: any) {
+      if (user) {
+        token.user = {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          isAdmin: user.isAdmin,
+        };
+      }
+      if (trigger === 'update' && session) {
+        token.user = {
+          ...token.user,
+          email: session.user.email,
+          name: session.user.name,
+        };
+      }
+      return token;
+    },
+    session: async ({ session, token }: any) => {
+      if (token) {
+        session.user = token.user;
+      }
+      return session;
+    },
+  },
+};
+
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+} = NextAuth(config);
+
+
+//lib\data.ts
+import bcrypt from 'bcryptjs';
+
+const data = {
+  users: [
+    {
+      name: 'Admin',
+      email: 'admin@admin.com',
+      password: bcrypt.hashSync('admin123'),
+      isAdmin: true,
+    },
+    {
+      name: 'Test',
+      email: 'test@test.com',
+      password: bcrypt.hashSync('test'),
+      isAdmin: false,
+    },
+  ],
+  products: [
+    {
+      name: 'Free Shirt',
+      slug: 'free-shirt',
+      category: 'Shirts',
+      image: '/images/shirt1.jpg',
+      price: 70,
+      brand: 'Nike',
+      rating: 4.5,
+      numReviews: 8,
+      countInStock: 20,
+      description: 'A popular shirt',
+      isFeatured: true,
+      banner: '/images/banner/banner1.jpg',
+    },
+    {
+      name: 'Fit Shirt',
+      slug: 'fit-shirt',
+      category: 'Shirts',
+      image: '/images/shirt2.jpg',
+      price: 80,
+      brand: 'Adidas',
+      rating: 3.2,
+      numReviews: 10,
+      countInStock: 20,
+      description: 'A popular shirt',
+      isFeatured: true,
+      banner: '/images/banner/banner2.jpg',
+    },
+    // {
+    //   name: 'Slim Shirt',
+    //   slug: 'slim-shirt',
+    //   category: 'Shirts',
+    //   image: '/images/shirt3.jpg',
+    //   price: 90,
+    //   brand: 'Raymond',
+    //   rating: 4.5,
+    //   numReviews: 3,
+    //   countInStock: 20,
+    //   description: 'A popular shirt',
+    // },
+    // {
+    //   name: 'Golf Pants',
+    //   slug: 'golf-pants',
+    //   category: 'Pants',
+    //   image: '/images/pants1.jpg',
+    //   price: 90,
+    //   brand: 'Oliver',
+    //   rating: 2.9,
+    //   numReviews: 13,
+    //   countInStock: 20,
+    //   description: 'Smart looking pants',
+    // },
+    // {
+    //   name: 'Fit Pants',
+    //   slug: 'fit-pants',
+    //   category: 'Pants',
+    //   image: '/images/pants2.jpg',
+    //   price: 95,
+    //   brand: 'Zara',
+    //   rating: 3.5,
+    //   numReviews: 7,
+    //   countInStock: 20,
+    //   description: 'A popular pants',
+    // },
+    // {
+    //   name: 'Classic Pants',
+    //   slug: 'classic-pants',
+    //   category: 'Pants',
+    //   image: '/images/pants3.jpg',
+    //   price: 75,
+    //   brand: 'Casely',
+    //   rating: 2.4,
+    //   numReviews: 14,
+    //   countInStock: 20,
+    //   description: 'A popular pants',
+    // },
+  ],
+};
+
+export default data;
+
+
+//lib\dbConnect.ts
+import mongoose from 'mongoose';
+
+const dbConnect = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI!);
+  } catch (error) {
+    throw new Error('Connection Failed!');
+  }
+};
+
+export default dbConnect;
+
+
+//lib\paypal.ts
+const base = process.env.PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
+
+export const paypal = {
+  createOrder: async function createOrder(price: number) {
+    const accessToken = await generateAccessToken();
+    const url = `${base}/v2/checkout/orders`;
+    const response = await fetch(url, {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        intent: 'CAPTURE',
+        purchase_units: [
+          {
+            amount: {
+              currency_code: 'USD',
+              value: price,
+            },
+          },
+        ],
+      }),
+    });
+    return handleResponse(response);
+  },
+  capturePayment: async function capturePayment(orderId: string) {
+    const accessToken = await generateAccessToken();
+    const url = `${base}/v2/checkout/orders/${orderId}/capture`;
+    const response = await fetch(url, {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    return handleResponse(response);
+  },
+};
+
+async function generateAccessToken() {
+  const { PAYPAL_CLIENT_ID, PAYPAL_APP_SECRET } = process.env;
+
+  console.log(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_APP_SECRET);
+  const auth = Buffer.from(PAYPAL_CLIENT_ID + ':' + PAYPAL_APP_SECRET).toString(
+    'base64',
+  );
+  const response = await fetch(`${base}/v1/oauth2/token`, {
+    method: 'post',
+    body: 'grant_type=client_credentials',
+    headers: {
+      Authorization: `Basic ${auth}`,
+    },
+  });
+
+  const jsonData = await handleResponse(response);
+  return jsonData.access_token;
+}
+
+async function handleResponse(response: any) {
+  if (response.status === 200 || response.status === 201) {
+    return response.json();
+  }
+
+  const errorMessage = await response.text();
+  throw new Error(errorMessage);
+}
+
+
+//lib\utils.ts
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export const round2 = (num: number) => {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+};
+
+export const convertDocToObj = (doc: any) => {
+  doc._id = doc._id.toString();
+  return doc;
+};
+
+export const formatNumber = (x: number) => {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+export const formatId = (x: string) => {
+  return `..${x.substring(20, 24)}`;
+};
+
+export const delay = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+
+//types\next-auth.d.ts
+import NextAuth, { DefaultSession, DefaultUser } from 'next-auth';
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      _id?: string | null;
+      isAdmin?: boolean;
+    } & DefaultSession['user'];
+  }
+
+  export interface User extends DefaultUser {
+    _id?: string;
+    isAdmin?: boolean;
+  }
+}
+
+
+//components.json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "default",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "app/globals.css",
+    "baseColor": "slate",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils"
+  }
+}
+
+//middleware.ts
+import NextAuth from 'next-auth';
+import type { NextAuthConfig } from 'next-auth';
+
+const authConfig = {
+  providers: [],
+  callbacks: {
+    authorized({ request, auth }: any) {
+      const protectedPaths = [
+        /\/shipping/,
+        /\/payment/,
+        /\/place-order/,
+        /\/profile/,
+        /\/order\/(.*)/,
+        /\/admin/,
+      ];
+      const { pathname } = request.nextUrl;
+      if (protectedPaths.some((p) => p.test(pathname))) return !!auth;
+      return true;
+    },
+  },
+} satisfies NextAuthConfig;
+
+export const { auth: middleware } = NextAuth(authConfig);
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+};
+
+
+// @ts-check
+import withPlaiceholder from '@plaiceholder/next';
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+    ],
+    formats: ['image/avif', 'image/webp'],
+  },
+  // experimental: {
+  //   ppr: true,
+  // },
+};
+
+export default withPlaiceholder(nextConfig);
+
+
+//package.json
+{
+  "name": "fullstack-next-store",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@paypal/react-paypal-js": "^8.3.0",
+    "@plaiceholder/next": "^3.0.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "bcryptjs": "^2.4.3",
+    "chart.js": "^4.4.2",
+    "class-variance-authority": "^0.7.0",
+    "cloudinary": "^2.2.0",
+    "clsx": "^2.1.1",
+    "embla-carousel-react": "^8.0.4",
+    "lucide-react": "^0.378.0",
+    "mongoose": "^8.2.3",
+    "next": "^14.1.4",
+    "next-auth": "^5.0.0-beta.16",
+    "next-nprogress-bar": "^2.3.11",
+    "react": "18.2",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "18.2",
+    "react-hook-form": "^7.51.2",
+    "react-hot-toast": "^2.4.1",
+    "sharp": "^0.32.6",
+    "swr": "^2.2.5",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "daisyui": "^4.9.0",
+    "eslint": "^8",
+    "eslint-config-next": "^15.0.0-rc.0",
+    "eslint-plugin-import": "^2.29.1",
+    "postcss": "^8",
+    "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.5.14",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  }
+}
+
+
+//tsconfig.json
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [{
+      "name": "next"
+    }],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "target": "ES2017"
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+
