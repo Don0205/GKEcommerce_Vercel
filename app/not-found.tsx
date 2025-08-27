@@ -1,6 +1,8 @@
 //app\not-found.tsx
 import Link from 'next/link';
-import React from 'react';
+//import React from 'react';
+
+export const dynamic = 'force-static'; // 新增這行
 
 const NotFoundPage = () => {
   return (
