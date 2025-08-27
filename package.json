@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node --project tsconfig-seed.json prisma/seed.ts"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^8.3.0",
