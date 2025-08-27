@@ -27,7 +27,6 @@ const Header = () => {
         <div className='block bg-base-300 pb-3 text-center md:hidden'>
           <SearchBox />
         </div>
-        <BlindBoxSearch />
       </nav>
     </header>
   );
