@@ -3,9 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import Overlay from './Overlay';
-import Handbags from '../../public/images/categories/hero.avif';
-import Pants from '../../public/images/categories/figures.avif';
 import Shirts from '../../public/images/categories/blidBox.jpg';
+import Pants from '../../public/images/categories/figures.avif';
+import Handbags from '../../public/images/categories/hero.avif';
 
 const Categories = () => {
   return (
