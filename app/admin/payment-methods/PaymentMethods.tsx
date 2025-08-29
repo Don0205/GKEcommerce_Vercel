@@ -7,7 +7,7 @@ import useSWRMutation from 'swr/mutation';
 
 const PaymentMethods = () => {
   const { data: paymentMethods, error: methodsError } = useSWR('/api/admin/payment-methods');
-  const { data: bankData, error: bankError } = useSWR('/api/admin/bank');
+  const { data: bankData, error: bankError } = useSWR('/api/bank');
 
   const { trigger: updateMethod, isMutating: isUpdatingMethod } = useSWRMutation(
     '/api/admin/payment-methods',
@@ -26,7 +26,7 @@ const PaymentMethods = () => {
   );
 
   const { trigger: updateBank, isMutating: isUpdatingBank } = useSWRMutation(
-    '/api/admin/bank',
+    '/api/bank',
     async (url, { arg }: { arg: { cardNum: string } }) => {
       const res = await fetch(url, {
         method: 'PUT',
