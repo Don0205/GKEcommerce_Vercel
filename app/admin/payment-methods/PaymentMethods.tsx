@@ -1,4 +1,4 @@
-// app/admin/payment-methods/page.tsx
+// app/admin/payment-methods/PaymentMethods.tsx
 'use client';
 import toast from 'react-hot-toast';
 import useSWR from 'swr';

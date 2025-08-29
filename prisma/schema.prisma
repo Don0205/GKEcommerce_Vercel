@@ -78,3 +78,8 @@ model PaymentMethod {
   name    String  @unique
   enabled Boolean @default(true)
 }
+
+model Bank {
+  id      String  @id @default(cuid())
+  CardNum String
+}

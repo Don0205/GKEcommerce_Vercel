@@ -1,8 +1,10 @@
-// app\(front)\search\page.tsx
+// app/(front)/search/page.tsx
 import Link from 'next/link';
 
 import ProductItem from '@/components/products/ProductItem';
 import { Rating } from '@/components/products/Rating';
+import prisma from '@/lib/dbConnect'; // 新增
+import { Product } from '@/lib/models/ProductModel'; // 新增導入 Product 類型
 import productServices from '@/lib/services/productService';
 
 const sortOrders = ['newest', 'lowest', 'highest', 'rating'];
@@ -33,9 +35,9 @@ export async function generateMetadata({
     rating: string;
     sort: string;
     page: string;
-  }>; // 更新為 Promise 類型
+  }>;
 }) {
-  const resolvedSearchParams = await searchParams; // await 解析 searchParams
+  const resolvedSearchParams = await searchParams;
   const { q = 'all', category = 'all', price = 'all', rating = 'all' } = resolvedSearchParams;
 
   if (
@@ -67,9 +69,9 @@ export default async function SearchPage({
     rating: string;
     sort: string;
     page: string;
-  }>; // 更新為 Promise 類型
+  }>;
 }) {
-  const resolvedSearchParams = await searchParams; // await 解析 searchParams
+  const resolvedSearchParams = await searchParams;
   const {
     q = 'all',
     category = 'all',
@@ -109,31 +111,23 @@ export default async function SearchPage({
     page,
     sort,
   });
-
-  // 檢查如果 q 是數字（價格），則添加虛擬 '盲盒' 產品
-  const inputPrice = parseFloat(q);
-  if (!isNaN(inputPrice) && q !== 'all') {
-    const blindBoxProduct = {
-      id: 'blind-box-id', // 虛擬 ID
-      name: '盲盒',
-      slug: 'blind-box', // 虛擬 slug，如果點擊需處理路由
-      category: category !== 'all' ? category : '盲盒', // 匹配 category 或預設
-      image: '/images/placeholder.jpg', // 替換為您的 placeholder 圖片
-      price: inputPrice, // 用戶輸入的價格
-      brand: '盲盒品牌', // 預設
-      rating: 0,
-      numReviews: 0,
-      countInStock: 1, // 預設有庫存
-      description: '這是一個盲盒產品，價格為您輸入的值。', // 預設描述
-      isFeatured: false,
-      banner: undefined, // 改為 undefined 以匹配 Product 類型
-    };
-    // 添加到產品列表最前面，並更新計數
-    products = [blindBoxProduct, ...products];
-    countProducts += 1;
-    // 如果需要調整分頁，pages 可能需 +1，但為了簡單，忽略
+  // 檢查如果 q 是數字（金額），則自動湊單
+  const inputAmount = parseFloat(q);
+  if (!isNaN(inputAmount) && q !== 'all') {
+    // 從 DB 取所有產品價格
+    const allProducts = await prisma.product.findMany({
+      select: { price: true },
+    });
+    const prices = allProducts.map((p: { price: number }) => p.price);
+    const selectedPrices = knapsackClosestSum(prices, inputAmount);
+    // 基於選取價格，取對應產品（假設價格唯一，或取第一個匹配）
+    products = await prisma.product.findMany({
+      where: { price: { in: selectedPrices } },
+    }) as Product[];
+    countProducts = products.length;
+    pages = 1; // 無分頁
   }
-
+  
   return (
     <div className='grid md:grid-cols-5 md:gap-5'>
       <div>
@@ -254,15 +248,9 @@ export default async function SearchPage({
         </div>
 
         <div>
-          <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-3 '>
             {products.map((product) => (
-              <ProductItem
-                key={product.slug}
-                product={product}
-                extraQuery={
-                  product.slug === 'blind-box' ? { price: q } : undefined
-                }
-              />
+              <ProductItem key={product.slug} product={product} />
             ))}
           </div>
           <div className='join'>
@@ -283,4 +271,36 @@ export default async function SearchPage({
       </div>
     </div>
   );
+}
+// 額外：添加湊單算法函數
+function knapsackClosestSum(prices: number[], target: number): number[] {
+  const n = prices.length;
+  const dp = Array.from({ length: n + 1 }, () => Array(target + 1).fill(false));
+  dp[0][0] = true;
+  for (let i = 1; i <= n; i++) {
+    for (let j = 0; j <= target; j++) {
+      dp[i][j] = dp[i - 1][j];
+      if (j >= prices[i - 1]) {
+        dp[i][j] = dp[i][j] || dp[i - 1][j - prices[i - 1]];
+      }
+    }
+  }
+  let maxSum = 0;
+  for (let j = target; j >= 0; j--) {
+    if (dp[n][j]) {
+      maxSum = j;
+      break;
+    }
+  }
+  // 重建選取
+  const selection = [];
+  let i = n, j = maxSum;
+  while (i > 0 && j > 0) {
+    if (dp[i][j] && !dp[i - 1][j]) {
+      selection.push(prices[i - 1]);
+      j -= prices[i - 1];
+    }
+    i--;
+  }
+  return selection;
 }

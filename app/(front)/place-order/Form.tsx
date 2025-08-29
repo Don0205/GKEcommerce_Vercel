@@ -1,4 +1,4 @@
-//app\(front)\place-order\Form.tsx
+// app/(front)/place-order/Form.tsx
 'use client';
 
 import Image from 'next/image';
@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import useSWR from 'swr'; // 新增
 import useSWRMutation from 'swr/mutation';
 
 import CheckoutSteps from '@/components/checkout/CheckoutSteps';
@@ -54,6 +55,9 @@ const Form = () => {
     },
   );
 
+  // 如果 paymentMethod 是 'Bank'，載入卡號
+  const { data: bankData } = useSWR(paymentMethod === 'Bank' ? '/api/bank' : null);
+
   useEffect(() => {
     if (!paymentMethod) {
       return router.push('/payment');
@@ -98,6 +102,9 @@ const Form = () => {
             <div className='card-body'>
               <h2 className='card-title'>Payment Method</h2>
               <p>{paymentMethod}</p>
+              {paymentMethod === 'Bank' && bankData?.cardNum && (
+                <p>Bank Card Number: {bankData.cardNum}</p>
+              )}
               <div>
                 <Link className='btn' href='/payment'>
                   Edit
