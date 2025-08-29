@@ -21,3 +21,38 @@ export const GET = auth(async (req) => {
     return NextResponse.json({ message: err.message }, { status: 500 });
   }
 }) as any;
+
+export const PUT = auth(async (req) => {
+  const { user } = req.auth || {};
+
+  if (!user || !user.isAdmin) {
+    return NextResponse.json({ message: 'unauthorized' }, { status: 401 });
+  }
+
+  const { cardNum } = await req.json();
+
+  if (!cardNum) {
+    return NextResponse.json({ message: 'Card number is required' }, { status: 400 });
+  }
+
+  try {
+    let bank = await prisma.bank.findFirst();
+
+    if (!bank) {
+      // 如果無記錄，創建新的一個
+      bank = await prisma.bank.create({
+        data: { CardNum: cardNum },
+      });
+    } else {
+      // 更新現有記錄
+      bank = await prisma.bank.update({
+        where: { id: bank.id },
+        data: { CardNum: cardNum },
+      });
+    }
+
+    return NextResponse.json({ message: 'Bank card updated successfully', cardNum: bank.CardNum });
+  } catch (err: any) {
+    return NextResponse.json({ message: err.message }, { status: 500 });
+  }
+}) as any;
