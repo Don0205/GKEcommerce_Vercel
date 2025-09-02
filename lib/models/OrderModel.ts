@@ -5,9 +5,15 @@ export type Order = {
   userId: string;
   user?: { name: string };
   items: OrderItem[];
-  shippingAddress: ShippingAddress;
+  name: string;
+  country: string;
+  address: string;
+  email: string;
+  phone: string;
   paymentMethod: string;
-  paymentResult?: PaymentResult;
+  paymentResultId?: string;
+  paymentResultStatus?: string;
+  paymentResultEmailAddress?: string;
   itemsPrice: number;
   shippingPrice: number;
   taxPrice: number;
@@ -26,23 +32,27 @@ export type OrderItem = {
   productId: string;
   name: string;
   qty: number;
+  images: string[];
+  price: number;
+  slug: string;
+};
+export type OrderHistoryItem = {
+  id: string;
+  orderId: string;
+  productId: string;
+  name: string;
+  qty: number;
   image: string;
   price: number;
   slug: string;
 };
 
 export type ShippingAddress = {
-  fullName: string;
-  address: string;
-  city: string;
-  postalCode: string;
+  name: string;
   country: string;
-};
-
-export type PaymentResult = {
-  id: string;
-  status: string;
-  email_address: string;
+  address: string;
+  email: string;
+  phone: string;
 };
 
 export const calcOrderTotal = (items: OrderItem[]): number => {

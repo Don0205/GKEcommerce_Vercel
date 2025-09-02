@@ -1,4 +1,4 @@
-//app\api\admin\products\route.ts
+// app\api\admin\products\route.ts
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/dbConnect';
 
@@ -21,11 +21,13 @@ export const POST = auth(async (req: any) => {
     );
   }
   try {
+    const sampleImage = 'https://res.cloudinary.com/dqxlehni0/image/upload/v1715622109/No_Image_Available_kbdno1.jpg';
     const product = await prisma.product.create({
       data: {
         name: 'sample name',
         slug: 'sample-name-' + Math.random(),
-        image: 'https://res.cloudinary.com/dqxlehni0/image/upload/v1715622109/No_Image_Available_kbdno1.jpg',
+        images: [sampleImage],  // 使用圖片陣列
+        banner: sampleImage,  // 設定 banner 為第一張圖片
         price: 0,
         category: 'sample category',
         brand: 'sample brand',

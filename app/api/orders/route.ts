@@ -27,7 +27,7 @@ export const POST = auth(async (req) => {
 
   try {
     const payload = await req.json();
-    const { items, shippingAddress, paymentMethod } = payload;
+    const { items, name, country, address, email, phone, paymentMethod } = payload;
 
     // 處理盲盒：如果有 blind-box-id，動態創建臨時產品
     const processedItems = await Promise.all(items.map(async (item: any) => {
@@ -38,7 +38,7 @@ export const POST = auth(async (req) => {
             name: '盲盒',
             slug: `blind-box-${Date.now()}`, // 唯一 slug
             category: '盲盒',
-            image: '/images/placeholder.jpg', // 預設圖片
+            images: ['/images/placeholder.jpg'], // 預設圖片陣列
             price: item.price, // 用戶輸入價格
             brand: '盲盒品牌',
             rating: 0,
@@ -84,21 +84,26 @@ export const POST = auth(async (req) => {
 
     const newOrder = await prisma.order.create({
       data: {
-        user: { connect: { id: user._id } },
+        user: { connect: { id: user._id } },  // 注意：user.id 而非 user._id
         items: {
           create: dbOrderItems.map((item: any) => ({
             name: item.name,
             qty: item.qty,
-            image: item.image,
+            image: item.images[0],
             price: item.price,
+            slug: item.slug,
             product: { connect: { id: item.id } },
           })),
         },
+        name,
+        country,
+        address,
+        email,
+        phone,
         itemsPrice,
         taxPrice,
         shippingPrice,
         totalPrice,
-        shippingAddress,
         paymentMethod,
       },
       include: { items: true },
@@ -109,6 +114,7 @@ export const POST = auth(async (req) => {
       { status: 201 }
     );
   } catch (err: any) {
+    console.log(err)
     return NextResponse.json(
       { message: err.message },
       { status: 500 }
@@ -125,7 +131,7 @@ export const GET = auth(async (req) => {
 
   try {
     const orders = await prisma.order.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id },  // 注意：user.id 而非 user._id
       include: { items: true },
     });
     return NextResponse.json(orders);

@@ -14,11 +14,22 @@ const ProductItem = async ({
   product: Product; 
   extraQuery?: Record<string, string>; 
 }) => {
+  // 確保 images 是陣列，如果 undefined 則設為空陣列
+  const images = product.images || [];
+
+  // 使用 banner 作為主圖，如果沒有則用 images[0]
+  let mainImage = product.banner || (images.length > 0 ? images[0] : '');
+
+  // 如果 mainImage 為空，使用預設圖片
+  if (!mainImage) {
+    mainImage = '/images/placeholder.jpg';  // 替換為您的預設圖片 URL
+  }
+
   let base64 = '';
 
-  if (product.image.startsWith('https')) {
+  if (mainImage.startsWith('https')) {
     try {
-      const res = await fetch(product.image);
+      const res = await fetch(mainImage);
       if (!res.ok) {
         throw new Error(
           `Failed to fetch image: ${res.status} ${res.statusText}`,
@@ -42,7 +53,7 @@ const ProductItem = async ({
     }
   } else {
     // 如果是相對路徑，我們跳過 plaiceholder 處理
-    base64 = product.image;
+    base64 = mainImage;
   }
 
   let href = `/product/${product.slug}`;
@@ -59,7 +70,7 @@ const ProductItem = async ({
           className='relative aspect-square h-full w-full'
         >
           <Image
-            src={product.image}
+            src={mainImage}
             alt={product.name}
             placeholder={base64 ? 'blur' : 'empty'}
             blurDataURL={base64}
@@ -75,7 +86,7 @@ const ProductItem = async ({
             {product.name}
           </h3>
         </Link>
-        <Rating value={product.rating} caption={`(${product.name})`} isCard />
+        <Rating value={product.rating} caption={`(${product.numReviews})`} isCard />
         <p className='line-clamp-1'>{product.brand}</p>
         <div className='card-actions flex items-center justify-between'>
           <span className='text-2xl'>${product.price}</span>

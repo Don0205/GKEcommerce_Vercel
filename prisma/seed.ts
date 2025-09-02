@@ -122,46 +122,46 @@ async function main() {
 
   // Create some orders
   console.log('Creating orders...')
-  const order1 = await prisma.order.create({
-    data: {
-      userId: user.id,
-      items: {
-        create: [
-          {
-            name: 'Free Shirt',
-            qty: 1,
-            image: '/images/shirt1.jpg',
-            price: 70,
-            productId: (await prisma.product.findUnique({ where: { slug: 'free-shirt' } }))!.id,
-          },
-          {
-            name: 'Fit Shirt',
-            qty: 2,
-            image: '/images/shirt2.jpg',
-            price: 80,
-            productId: (await prisma.product.findUnique({ where: { slug: 'fit-shirt' } }))!.id,
-          },
-        ],
-      },
-      shippingAddress: {
-        fullName: 'John Doe',
-        address: '123 Main St',
-        city: 'New York',
-        postalCode: '10001',
-        country: 'USA',
-      },
-      paymentMethod: 'PayPal',
-      itemsPrice: 230,
-      shippingPrice: 15,
-      taxPrice: 35,
-      totalPrice: 280,
-      isPaid: true,
-      paidAt: new Date(),
-      isDelivered: false,
-    },
-  })
+  // const order1 = await prisma.order.create({
+  //   data: {
+  //     userId: user.id,
+  //     items: {
+  //       create: [
+  //         {
+  //           name: 'Free Shirt',
+  //           qty: 1,
+  //           image: '/images/shirt1.jpg',
+  //           price: 70,
+  //           productId: (await prisma.product.findUnique({ where: { slug: 'free-shirt' } }))!.id,
+  //         },
+  //         {
+  //           name: 'Fit Shirt',
+  //           qty: 2,
+  //           image: '/images/shirt2.jpg',
+  //           price: 80,
+  //           productId: (await prisma.product.findUnique({ where: { slug: 'fit-shirt' } }))!.id,
+  //         },
+  //       ],
+  //     },
+  //     shippingAddress: {
+  //       fullName: 'John Doe',
+  //       address: '123 Main St',
+  //       city: 'New York',
+  //       postalCode: '10001',
+  //       country: 'USA',
+  //     },
+  //     paymentMethod: 'PayPal',
+  //     itemsPrice: 230,
+  //     shippingPrice: 15,
+  //     taxPrice: 35,
+  //     totalPrice: 280,
+  //     isPaid: true,
+  //     paidAt: new Date(),
+  //     isDelivered: false,
+  //   },
+  // })
 
-  console.log({ admin, user, createdProducts, order1 })
+  console.log({ admin, user, createdProducts })
   console.log('Seeding completed')
 }
 

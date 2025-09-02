@@ -21,11 +21,11 @@ export const POST = auth(async (...request: any) => {
         data: {
           isPaid: true,
           paidAt: new Date(),
-          paymentResult: {
-            id: captureData.id,
-            status: captureData.status,
-            email_address: captureData.payer.email_address,
-          },
+          // paymentResult: {
+          //   id: captureData.id,
+          //   status: captureData.status,
+          //   email_address: captureData.payer.email_address,
+          // },
         },
       });
       return Response.json(updatedOrder);

@@ -1,4 +1,4 @@
-//app\(front)\cart\CartDetails.tsx
+// app/(front)/cart/CartDetails.tsx
 'use client';
 
 import Image from 'next/image';
@@ -49,7 +49,7 @@ const CartDetails = () => {
                         className='flex items-center'
                       >
                         <Image
-                          src={item.image}
+                          src={item.images[0]}
                           alt={item.name}
                           width={50}
                           height={50}
@@ -82,7 +82,7 @@ const CartDetails = () => {
               </tbody>
             </table>
           </div>
-          <div className='card' bg-base-300>
+          <div className='card bg-base-300'>
             <div className='card-body'>
               <ul>
                 <li className='pb-3 text-xl'>

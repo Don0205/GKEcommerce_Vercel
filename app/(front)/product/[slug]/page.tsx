@@ -63,7 +63,7 @@ async function ProductPage({
       name: '盲盒',
       slug: 'blind-box',
       category: '盲盒',
-      image: '/images/placeholder.jpg', // 替換為您的盲盒 placeholder 圖片
+      images: ['/images/placeholder.jpg'], // 改為 images 陣列
       price: inputPrice,
       brand: '盲盒品牌',
       rating: 0,
@@ -81,10 +81,14 @@ async function ProductPage({
     }
   }
 
+  // 確保 product.images 有值，如果 undefined 設為空陣列
+  const images = product.images || [];
+  const imageUrl = images[0] || '/images/placeholder.jpg';
+
   let base64 = '';
-  if (product.image.startsWith('https')) {
+  if (imageUrl.startsWith('https')) {
     try {
-      const res = await fetch(product.image);
+      const res = await fetch(imageUrl);
       if (!res.ok) {
         throw new Error(
           `Failed to fetch image: ${res.status} ${res.statusText}`,
@@ -108,7 +112,7 @@ async function ProductPage({
     }
   } else {
     // 如果是相對路徑，我們跳過 plaiceholder 處理
-    base64 = product.image;
+    base64 = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='; // 默認模糊佔位
   }
 
   return (
@@ -119,7 +123,7 @@ async function ProductPage({
       <div className='grid gap-4 md:grid-cols-4'>
         <div className='relative aspect-square md:col-span-2'>
           <Image
-            src={product.image}
+            src={imageUrl}
             alt={product.name}
             placeholder={base64 ? 'blur' : 'empty'}
             blurDataURL={base64}

@@ -1,5 +1,4 @@
-//components\carousel\carousel.tsx
-import Image from 'next/image';
+// components\carousel\carousel.tsx
 import Link from 'next/link';
 
 import {
@@ -9,30 +8,28 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import productService from '@/lib/services/productService';
-import { delay } from '@/lib/utils';
 
 const Carousel = async () => {
-  await delay(3000);
-  const featuredProducts = await productService.getFeatured();
+  const videos = [
+    '/video/video_1.mp4',
+    '/video/video_2.mp4',
+    '/video/video_3.mp4',
+  ];
 
   return (
     <SCarousel opts={{ loop: true }}>
       <CarouselContent>
-        {featuredProducts.map((product) => (
-          <CarouselItem key={product.id}>
+        {videos.map((videoSrc, index) => (
+          <CarouselItem key={index}>
             <div className='w-full overflow-hidden rounded-lg'>
-              <Link href={`/product/${product.slug}`}>
-                <Image
-                  src={product.image}
+              <Link href='/'>
+                <video
+                  src={videoSrc}
                   className='h-[304px] w-full object-cover lg:h-[536px]'
-                  width={1500}
-                  height={300}
-                  alt={product.name}
-                  blurDataURL={product.image}
-                  placeholder='blur'
-                  sizes='(max-width: 1500px) 100vw, 1500px'
-                  priority
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
                 />
               </Link>
             </div>

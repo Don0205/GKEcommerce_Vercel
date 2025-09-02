@@ -1,4 +1,4 @@
-//app\api\admin\products\[id]\route.ts
+// app\api\admin\products\[id]\route.ts
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/dbConnect';
 
@@ -34,11 +34,14 @@ export const PUT = auth(async (...args: any) => {
     slug,
     price,
     category,
-    image,
+    images,  // 改為 images 陣列
     brand,
     countInStock,
     description,
   } = await req.json();
+
+  // 如果有 images，設定 banner 為第一張圖片
+  const banner = images && images.length > 0 ? images[0] : null;
 
   try {
     const product = await prisma.product.update({
@@ -48,7 +51,8 @@ export const PUT = auth(async (...args: any) => {
         slug,
         price,
         category,
-        image,
+        images,  // 更新 images 陣列
+        banner,  // 設定 banner 為 images[0]
         brand,
         countInStock,
         description,

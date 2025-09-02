@@ -36,7 +36,11 @@ const Form = () => {
         },
         body: JSON.stringify({
           paymentMethod,
-          shippingAddress,
+          name: shippingAddress.name,
+          country: shippingAddress.country,
+          address: shippingAddress.address,
+          email: shippingAddress.email,
+          phone: shippingAddress.phone,
           items,
           itemsPrice,
           taxPrice,
@@ -85,11 +89,12 @@ const Form = () => {
           <div className='card bg-base-300'>
             <div className='card-body'>
               <h2 className='card-title'>Shipping Address</h2>
-              <p>{shippingAddress.fullName}</p>
+              <p>{shippingAddress.name}</p>
               <p>
-                {shippingAddress.address}, {shippingAddress.city},{' '}
-                {shippingAddress.postalCode}, {shippingAddress.country}{' '}
+                {shippingAddress.address}, {shippingAddress.country}{' '}
               </p>
+              <p>Email: {shippingAddress.email}</p>
+              <p>Phone: {shippingAddress.phone}</p>
               <div>
                 <Link className='btn' href='/shipping'>
                   Edit
@@ -133,7 +138,7 @@ const Form = () => {
                           className='flex items-center'
                         >
                           <Image
-                            src={item.image}
+                            src={item.images[0]}
                             alt={item.name}
                             width={50}
                             height={50}

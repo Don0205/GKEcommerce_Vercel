@@ -1,4 +1,4 @@
-//lib\hooks\useCartStore.ts
+// lib\hooks\useCartStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -7,6 +7,7 @@ import { round2 } from '../utils';
 
 type Cart = {
   items: OrderItem[];
+  images: string[];
   itemsPrice: number;
   taxPrice: number;
   shippingPrice: number;
@@ -18,17 +19,18 @@ type Cart = {
 
 const initialState: Cart = {
   items: [],
+  images: [],
   itemsPrice: 0,
   taxPrice: 0,
   shippingPrice: 0,
   totalPrice: 0,
   paymentMethod: 'PayPal',
   shippingAddress: {
-    fullName: '',
-    address: '',
-    city: '',
-    postalCode: '',
+    name: '',
     country: '',
+    address: '',
+    email: '',
+    phone: '',
   },
 };
 

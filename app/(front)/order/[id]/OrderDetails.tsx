@@ -1,4 +1,4 @@
-//app\(front)\order\[id]\OrderDetails.tsx
+// app/(front)/order/[id]/OrderDetails.tsx
 'use client';
 
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 
-import { OrderItem } from '@/lib/models/OrderModel';
+import { OrderHistoryItem } from '@/lib/models/OrderModel';
 
 interface IOrderDetails {
   orderId: string;
@@ -67,7 +67,11 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
 
   const {
     paymentMethod,
-    shippingAddress,
+    name,
+    country,
+    address,
+    email,
+    phone,
     items,
     itemsPrice,
     taxPrice,
@@ -86,12 +90,12 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
         <div className='md:col-span-3'>
           <div className='card bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>Shipping Address</h2>
-              <p>{shippingAddress.fullName}</p>
-              <p>
-                {shippingAddress.address}, {shippingAddress.city},{' '}
-                {shippingAddress.postalCode}, {shippingAddress.country}{' '}
-              </p>
+              <h2 className='card-title'>訂單資訊</h2>
+              <p>名字: {name}</p>
+              <p>國家: {country}</p>
+              <p>地址: {address}</p>
+              <p>郵箱: {email}</p>
+              <p>手機: {phone}</p>
               {isDelivered ? (
                 <div className='text-success'>Delivered at {deliveredAt}</div>
               ) : (
@@ -124,7 +128,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item: OrderItem) => (
+                  {items.map((item: OrderHistoryItem) => (
                     <tr key={item.slug}>
                       <td>
                         <Link
