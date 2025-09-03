@@ -11,49 +11,49 @@ const Categories = () => {
   return (
     <div className='grid auto-rows-[300px] grid-cols-2 gap-4 md:auto-rows-[330px] md:grid-cols-4'>
       <Link
-        href='/search?category=盲盒'
+        href='/search?category=火影'
         className='group relative col-span-2 row-span-1 overflow-hidden md:row-span-2'
       >
         <Image
           src={BlidBox}
-          alt='盲盒系列'
+          alt='火影系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='盲盒' />
+        <Overlay category='火影' />
       </Link>
       <Link
-        href='/search?category=模型'
+        href='/search?category=海賊王'
         className='group relative col-span-2 overflow-hidden'
       >
         <Image
           src={Figures}
-          alt='模型系列'
+          alt='海賊王系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='模型' />
+        <Overlay category='海賊王' />
       </Link>
       <Link
-        href='/search?category=英雄'
+        href='/search?category=火影'
         className='group relative col-span-2 overflow-hidden'
       >
         <Image
           src={Hero}
-          alt='英雄系列'
+          alt='火影系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='英雄' />
+        <Overlay category='火影' />
       </Link>
     </div>
   );
