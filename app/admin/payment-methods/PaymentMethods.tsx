@@ -18,9 +18,9 @@ const PaymentMethods = () => {
         body: JSON.stringify({ enabled: arg.enabled }),
       });
       if (!res.ok) {
-        throw new Error('Failed to update');
+        throw new Error('更新失敗');
       }
-      toast.success('Updated successfully');
+      toast.success('更新成功');
       return res.json();
     }
   );
@@ -34,9 +34,9 @@ const PaymentMethods = () => {
         body: JSON.stringify({ cardNum: arg.cardNum }),
       });
       if (!res.ok) {
-        throw new Error('Failed to update bank card');
+        throw new Error('更新銀行卡失敗');
       }
-      toast.success('Bank card updated successfully');
+      toast.success('銀行卡更新成功');
       return res.json();
     }
   );
@@ -53,32 +53,32 @@ const PaymentMethods = () => {
     updateBank({ cardNum });
   };
 
-  if (methodsError || bankError) return 'Error loading data';
-  if (!paymentMethods || !bankData) return 'Loading...';
+  if (methodsError || bankError) return '載入數據時出錯';
+  if (!paymentMethods || !bankData) return '載入中...';
 
   return (
     <div>
-      <h1 className='text-2xl my-4'>Payment Methods</h1>
+      <h1 className='text-2xl my-4'>付款方式</h1>
       <table className='table'>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Enabled</th>
-            <th>Action</th>
+            <th>名稱</th>
+            <th>啟用狀態</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
           {paymentMethods.map((method: { id: string; name: string; enabled: boolean }) => (
             <tr key={method.id}>
               <td>{method.name}</td>
-              <td>{method.enabled ? 'Yes' : 'No'}</td>
+              <td>{method.enabled ? '是' : '否'}</td>
               <td>
                 <button
                   className='btn btn-sm btn-primary'
                   disabled={isUpdatingMethod}
                   onClick={() => updateMethod({ id: method.id, enabled: !method.enabled })}
                 >
-                  Toggle
+                  切換
                 </button>
               </td>
             </tr>
@@ -88,26 +88,25 @@ const PaymentMethods = () => {
 
       <div className='card mt-8 bg-base-300'>
         <div className='card-body'>
-          <h2 className='card-title'>Bank Card Number</h2>
+          <h2 className='card-title'>銀行卡號</h2>
           <input
             type='text'
             value={cardNum}
             onChange={(e) => setCardNum(e.target.value)}
             className='input input-bordered w-full max-w-xs'
-            placeholder='Enter card number'
+            placeholder='輸入卡號'
           />
           <button
             className='btn btn-primary mt-4'
             disabled={isUpdatingBank}
             onClick={handleUpdateBank}
           >
-            Update Card Number
+            更新卡號
           </button>
         </div>
       </div>
     </div>
   );
-  
 };
 
 export default PaymentMethods;

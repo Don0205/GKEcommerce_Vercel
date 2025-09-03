@@ -15,7 +15,7 @@ const Form = () => {
   const { savePaymentMethod, paymentMethod, shippingAddress } =
     useCartService();
 
-  const { data: methods, error: methodsError } = useSWR('/api/payment-methods'); // 新增
+  const { data: methods, error: methodsError } = useSWR('/api/payment-methods');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,16 +30,16 @@ const Form = () => {
     setSelectedPaymentMethod(paymentMethod || methods?.[0]?.name || '');
   }, [paymentMethod, router, shippingAddress, methods]);
 
-  if (methodsError) return 'Error loading payment methods';
-  if (!methods) return 'Loading payment methods...';
-  if (methods.length === 0) return 'No payment methods available';
+  if (methodsError) return '載入付款方式時發生錯誤';
+  if (!methods) return '正在載入付款方式...';
+  if (methods.length === 0) return '沒有可用的付款方式';
 
   return (
     <div>
       <CheckoutSteps current={2} />
       <div className='card mx-auto my-4 max-w-sm bg-base-300'>
         <div className='card-body'>
-          <h1 className='card-title'>Payment Method</h1>
+          <h1 className='card-title'>付款方式</h1>
           <form onSubmit={handleSubmit}>
             {methods.map((payment: { name: string }) => (
               <div key={payment.name}>
@@ -58,7 +58,7 @@ const Form = () => {
             ))}
             <div className='my-2'>
               <button type='submit' className='btn btn-primary w-full'>
-                Next
+                下一步
               </button>
             </div>
             <div className='my-2'>
@@ -67,7 +67,7 @@ const Form = () => {
                 className='btn my-2 w-full'
                 onClick={() => router.back()}
               >
-                Back
+                返回
               </button>
             </div>
           </form>

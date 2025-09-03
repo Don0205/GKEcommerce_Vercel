@@ -14,7 +14,7 @@ export default function Users() {
   const { trigger: deleteUser } = useSWRMutation(
     `/api/admin/users`,
     async (url, { arg }: { arg: { userId: string } }) => {
-      const toastId = toast.loading('Deleting user...');
+      const toastId = toast.loading('正在刪除用戶...');
       const res = await fetch(`${url}/${arg.userId}`, {
         method: 'DELETE',
         headers: {
@@ -23,7 +23,7 @@ export default function Users() {
       });
       const data = await res.json();
       res.ok
-        ? toast.success('User deleted successfully', {
+        ? toast.success('用戶刪除成功', {
             id: toastId,
           })
         : toast.error(data.message, {
@@ -31,22 +31,22 @@ export default function Users() {
           });
     },
   );
-  if (error) return 'An error has occurred.';
-  if (!users) return 'Loading...';
+  if (error) return '發生錯誤。';
+  if (!users) return '載入中...';
 
   return (
     <div>
-      <h1 className='py-4 text-2xl'>Users</h1>
+      <h1 className='py-4 text-2xl'>用戶</h1>
 
       <div className='overflow-x-auto'>
         <table className='table table-zebra'>
           <thead>
             <tr>
-              <th>id</th>
-              <th>name</th>
-              <th>email</th>
-              <th>admin</th>
-              <th>actions</th>
+              <th>編號</th>
+              <th>姓名</th>
+              <th>電子郵件</th>
+              <th>管理員</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
@@ -55,7 +55,7 @@ export default function Users() {
                 <td>{formatId(user.id)}</td>
                 <td>{user.name}</td>
                 <td>{user.email}</td>
-                <td>{user.isAdmin ? 'YES' : 'NO'}</td>
+                <td>{user.isAdmin ? '是' : '否'}</td>
 
                 <td>
                   <Link
@@ -63,7 +63,7 @@ export default function Users() {
                     type='button'
                     className='btn btn-ghost btn-sm'
                   >
-                    Edit
+                    編輯
                   </Link>
                   &nbsp;
                   <button
@@ -71,7 +71,7 @@ export default function Users() {
                     type='button'
                     className='btn btn-ghost btn-sm'
                   >
-                    Delete
+                    刪除
                   </button>
                 </td>
               </tr>

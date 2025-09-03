@@ -22,7 +22,7 @@ const ReadMore = ({ children }: { children: React.ReactNode }) => {
               onClick={() => setIsMore(true)}
               className='btn mx-auto mt-2 self-end'
             >
-              Read More
+              閱讀更多
               <ChevronDown />
             </button>
           </div>
@@ -31,7 +31,7 @@ const ReadMore = ({ children }: { children: React.ReactNode }) => {
         <div className='flex items-center'>
           {isMore && (
             <button onClick={() => setIsMore(false)} className='btn mx-auto'>
-              Hide
+              隱藏
               <ChevronUp />
             </button>
           )}

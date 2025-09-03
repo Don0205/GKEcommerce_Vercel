@@ -5,6 +5,7 @@ import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { SWRConfig } from 'swr';
+import { usePathname } from 'next/navigation';
 
 import { cartStore } from '@/lib/hooks/useCartStore';
 import useLayoutService from '@/lib/hooks/useLayout';
@@ -12,6 +13,8 @@ import useLayoutService from '@/lib/hooks/useLayout';
 const ClientProvider = ({ children }: { children: React.ReactNode }) => {
   const { theme } = useLayoutService();
   const [selectedTheme, setSelectedTheme] = useState('system');
+  const pathname = usePathname();
+  const isAdminPage = pathname.startsWith('/admin');
 
   useEffect(() => {
     setSelectedTheme(theme);
@@ -21,7 +24,6 @@ const ClientProvider = ({ children }: { children: React.ReactNode }) => {
     cartStore.persist.rehydrate();
   };
 
-  // cart will be refreshed on cart change  n browser
   useEffect(() => {
     document.addEventListener('visibilitychange', updateStore);
     window.addEventListener('focus', updateStore);
@@ -40,13 +42,16 @@ const ClientProvider = ({ children }: { children: React.ReactNode }) => {
         fetcher: async (resource, init) => {
           const res = await fetch(resource, init);
           if (!res.ok) {
-            throw new Error('An error occurred while fetching the data.');
+            throw new Error('獲取數據時發生錯誤。');
           }
           return res.json();
         },
       }}
     >
-      <div data-theme={selectedTheme} className='flex min-h-screen flex-col'>
+      <div 
+        data-theme={selectedTheme} 
+        className={`flex min-h-screen flex-col ${!isAdminPage ? 'bg-custom' : ''}`}
+      >
         <Toaster toastOptions={{ className: 'toaster-con' }} />
         <ProgressBar />
         {children}

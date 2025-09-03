@@ -17,27 +17,25 @@ const Carousel = async () => {
   ];
 
   return (
-    <SCarousel opts={{ loop: true }}>
+    <SCarousel opts={{ loop: true }} className="w-full">
       <CarouselContent>
         {videos.map((videoSrc, index) => (
-          <CarouselItem key={index}>
-            <div className='w-full overflow-hidden rounded-lg'>
-              <Link href='/'>
-                <video
-                  src={videoSrc}
-                  className='h-[304px] w-full object-cover lg:h-[536px]'
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                />
-              </Link>
-            </div>
+          <CarouselItem key={index} className="relative w-full pt-[56.25%]"> {/* 16:9 aspect ratio */}
+            <Link href='/' className="absolute inset-0">
+              <video
+                src={videoSrc}
+                className='absolute inset-0 h-full w-full object-contain'
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
+            </Link>
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className='absolute left-4 top-1/2' />
-      <CarouselNext className='absolute right-4 top-1/2' />
+      <CarouselPrevious className='absolute left-4 top-1/2 z-10' />
+      <CarouselNext className='absolute right-4 top-1/2 z-10' />
     </SCarousel>
   );
 };
@@ -45,5 +43,5 @@ const Carousel = async () => {
 export default Carousel;
 
 export const CarouselSkeleton = () => {
-  return <div className='skeleton h-[304px] w-full rounded-lg lg:h-[536px]' />;
+  return <div className='skeleton h-0 w-full pt-[56.25%] rounded-lg' />; // 16:9 aspect ratio
 };

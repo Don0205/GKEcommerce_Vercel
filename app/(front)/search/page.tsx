@@ -3,22 +3,22 @@ import Link from 'next/link';
 
 import ProductItem from '@/components/products/ProductItem';
 import { Rating } from '@/components/products/Rating';
-import prisma from '@/lib/dbConnect'; // 新增
-import { Product } from '@/lib/models/ProductModel'; // 新增導入 Product 類型
+import prisma from '@/lib/dbConnect';
+import { Product } from '@/lib/models/ProductModel';
 import productServices from '@/lib/services/productService';
 
-const sortOrders = ['newest', 'lowest', 'highest', 'rating'];
+const sortOrders = ['最新', '最低價', '最高價', '評分'];
 const prices = [
   {
-    name: '$1 to $50',
+    name: '$1 到 $50',
     value: '1-50',
   },
   {
-    name: '$51 to $200',
+    name: '$51 到 $200',
     value: '51-200',
   },
   {
-    name: '$201 to $1000',
+    name: '$201 到 $1000',
     value: '201-1000',
   },
 ];
@@ -47,14 +47,14 @@ export async function generateMetadata({
     price !== 'all'
   ) {
     return {
-      title: `Search ${q !== 'all' ? q : ''}
-          ${category !== 'all' ? ` : Category ${category}` : ''}
-          ${price !== 'all' ? ` : Price ${price}` : ''}
-          ${rating !== 'all' ? ` : Rating ${rating}` : ''}`,
+      title: `搜尋 ${q !== 'all' ? q : ''}
+          ${category !== 'all' ? ` : 類別 ${category}` : ''}
+          ${price !== 'all' ? ` : 價格 ${price}` : ''}
+          ${rating !== 'all' ? ` : 評分 ${rating}` : ''}`,
     };
   } else {
     return {
-      title: 'Search Products',
+      title: '搜尋商品',
     };
   }
 }
@@ -77,7 +77,7 @@ export default async function SearchPage({
     category = 'all',
     price = 'all',
     rating = 'all',
-    sort = 'newest',
+    sort = '最新',
     page = '1',
   } = resolvedSearchParams;
 
@@ -111,27 +111,24 @@ export default async function SearchPage({
     page,
     sort,
   });
-  // 檢查如果 q 是數字（金額），則自動湊單
   const inputAmount = parseFloat(q);
   if (!isNaN(inputAmount) && q !== 'all') {
-    // 從 DB 取所有產品價格
     const allProducts = await prisma.product.findMany({
       select: { price: true },
     });
     const prices = allProducts.map((p: { price: number }) => p.price);
     const selectedPrices = knapsackClosestSum(prices, inputAmount);
-    // 基於選取價格，取對應產品（假設價格唯一，或取第一個匹配）
     products = await prisma.product.findMany({
       where: { price: { in: selectedPrices } },
     }) as Product[];
     countProducts = products.length;
-    pages = 1; // 無分頁
+    pages = 1;
   }
   
   return (
     <div className='grid md:grid-cols-5 md:gap-5'>
       <div>
-        <div className='py-2 text-xl'>Categories</div>
+        <div className='py-2 text-xl'>類別</div>
         <div>
           <ul>
             <li>
@@ -141,7 +138,7 @@ export default async function SearchPage({
                 }`}
                 href={getFilterUrl({ c: 'all' })}
               >
-                Any
+                任何
               </Link>
             </li>
             {categories.map((c: string) => (
@@ -159,7 +156,7 @@ export default async function SearchPage({
           </ul>
         </div>
         <div>
-          <div className='py-2 text-xl'>Price</div>
+          <div className='py-2 text-xl'>價格</div>
           <ul>
             <li>
               <Link
@@ -168,7 +165,7 @@ export default async function SearchPage({
                 }`}
                 href={getFilterUrl({ p: 'all' })}
               >
-                Any
+                任何
               </Link>
             </li>
             {prices.map((p) => (
@@ -186,7 +183,7 @@ export default async function SearchPage({
           </ul>
         </div>
         <div>
-          <div className='py-2 text-xl'>Customer Review</div>
+          <div className='py-2 text-xl'>顧客評價</div>
           <ul className='flex flex-col gap-1'>
             <li>
               <Link
@@ -195,7 +192,7 @@ export default async function SearchPage({
                   'all' === rating && 'link-primary'
                 }`}
               >
-                Any
+                任何
               </Link>
             </li>
             {ratings.map((r) => (
@@ -206,7 +203,7 @@ export default async function SearchPage({
                     `${r}` === rating && 'link-primary'
                   }`}
                 >
-                  <Rating caption={' & up'} value={r} />
+                  <Rating caption={' 以上'} value={r} />
                 </Link>
               </li>
             ))}
@@ -216,23 +213,23 @@ export default async function SearchPage({
       <div className='md:col-span-4'>
         <div className='flex flex-col justify-between py-4 md:flex-row'>
           <div className='flex items-center'>
-            {products.length === 0 ? 'No' : countProducts} Results
+            {products.length === 0 ? '沒有' : countProducts} 個結果
             {q !== 'all' && q !== '' && ' : ' + q}
             {category !== 'all' && ' : ' + category}
-            {price !== 'all' && ' : Price ' + price}
-            {rating !== 'all' && ' : Rating ' + rating + ' & up'}
+            {price !== 'all' && ' : 價格 ' + price}
+            {rating !== 'all' && ' : 評分 ' + rating + ' 以上'}
             &nbsp;
             {(q !== 'all' && q !== '') ||
             category !== 'all' ||
             rating !== 'all' ||
             price !== 'all' ? (
               <Link className='btn btn-ghost btn-sm' href='/search'>
-                Clear
+                清除
               </Link>
             ) : null}
           </div>
           <div>
-            Sort by:{' '}
+            排序方式：{' '}
             {sortOrders.map((s) => (
               <Link
                 key={s}
@@ -272,7 +269,7 @@ export default async function SearchPage({
     </div>
   );
 }
-// 額外：添加湊單算法函數
+
 function knapsackClosestSum(prices: number[], target: number): number[] {
   const n = prices.length;
   const dp = Array.from({ length: n + 1 }, () => Array(target + 1).fill(false));

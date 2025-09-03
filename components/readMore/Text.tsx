@@ -1,53 +1,52 @@
-//components\readMore\Text.tsx
 import React from 'react';
 
 const Text = () => {
   return (
-    <div>
+    <div className='text-white'>
       <h1 className='mb-4 text-3xl font-bold'>
-        GK Paradise: Premier Destination for Garage Kit Enthusiasts
+        GK天堂：車庫套件愛好者的首選目的地
       </h1>
       <h2 className='mb-2 text-2xl font-semibold'>
-        Your Ultimate Source for High-Quality Garage Kits and Model Figurines
+        您的高品質車庫套件和模型人偶終極來源
       </h2>
       <p className='mb-4'>
-        At GK Paradise, we believe that every garage kit tells a unique story. Explore our vast selection of meticulously crafted model kits, including popular anime characters, movie icons, and original creations, all designed to bring your favorite fictional worlds to life. Whether you&apos;re a seasoned modeler or just starting your journey into the fascinating world of GK, our extensive collection caters to all skill levels and interests.
+        在GK天堂，我們相信每個車庫套件都訴說著獨特的故事。探索我們豐富的精心製作的模型套件選擇，包括流行的動漫角色、電影偶像和原創作品，所有這些都旨在將您喜愛的虛構世界帶入現實。無論您是經驗豐富的模型製作者，還是剛開始進入GK的迷人世界，我們廣泛的收藏都能滿足各種技能水平和興趣。
       </p>
       <p className='mb-4'>
-        Our commitment to quality and authenticity ensures that every kit in our collection not only offers intricate details but also captures the essence of the characters they represent. From the fine textures of our resin kits to the precise sculpting of each figurine, every item is carefully selected to offer you the best in GK craftsmanship. Our user-friendly online store makes browsing and purchasing effortless, delivering your chosen kits right to your doorstep with just a few clicks.
+        我們對品質和真實性的承諾確保了我們收藏中的每一套件不僅提供精細的細節，還能捕捉它們所代表角色的精髓。從我們樹脂套件的精細紋理到每個人偶的精確雕刻，每件商品都經過精心挑選，為您提供GK工藝中的最佳選擇。我們用戶友好的在線商店使瀏覽和購買變得輕而易舉，只需點擊幾下，就能將您選擇的套件送到您的家門口。
       </p>
       <p className='mb-4'>
-        Dive into our diverse range of garage kits to find your next masterpiece. Whether it&apos;s the dynamic poses of our action figure kits, the serene beauty of our statue collections, or the intricate details of our diorama sets, GK Paradise has it all. Each product is showcased with detailed descriptions, high-resolution images, and often includes painting guides to give you a comprehensive view of the kit and its potential.
+        深入探索我們多樣化的車庫套件系列，找到您的下一件傑作。無論是我們動作人偶套件的動態姿勢、雕像收藏的寧靜美感，還是場景套裝的精緻細節，GK天堂應有盡有。每件產品都配有詳細描述、高解析度圖片，通常還包括繪畫指南，讓您全面了解套件及其潛力。
       </p>
       <p className='mb-4'>
-        Stay ahead of the GK curve with our new arrivals that are constantly updated to keep your collection fresh and exciting. Sign up for our newsletter to receive timely updates on the latest releases, limited editions, and exclusive pre-orders tailored just for GK enthusiasts. At GK Paradise, passion meets craftsmanship, providing you with an unrivaled online shopping experience for all your garage kit needs.
+        通過我們不斷更新的新品到貨，走在GK潮流的前沿，保持您的收藏新鮮有趣。訂閱我們的電子報，接收最新發布、限量版和專為GK愛好者量身定制的獨家預訂信息。在GK天堂，激情與工藝相遇，為您提供無與倫比的車庫套件在線購物體驗。
       </p>
       <h2 className='mb-2 text-2xl font-semibold'>
-        Why Choose GK Paradise?
+        為什麼選擇GK天堂？
       </h2>
       <p className='mb-4'>
-        At GK Paradise, quality meets creativity. Our dedication to sourcing authentic and high-quality garage kits sets us apart, making every purchase a valuable addition to your collection. We work directly with renowned sculptors and licensed manufacturers to ensure that each kit meets the highest standards of detail and accuracy.
+        在GK天堂，品質與創意相遇。我們致力於採購正宗和高品質的車庫套件，這使我們與眾不同，使每次購買都成為您收藏的寶貴補充。我們直接與知名雕塑家和授權製造商合作，確保每套件都符合最高的細節和準確性標準。
       </p>
       <p className='mb-4'>
-        We also take pride in offering exceptional customer service. Our knowledgeable support team, composed of fellow GK enthusiasts, is always eager to assist you with any questions about kit selection, assembly techniques, or painting tips, ensuring a seamless experience from purchase to project completion.
+        我們還以提供卓越的客戶服務而自豪。我們知識豐富的支持團隊由同為GK愛好者組成，他們總是熱衷於協助您解決有關套件選擇、組裝技巧或繪畫技巧的任何問題，確保從購買到項目完成的無縫體驗。
       </p>
       <p className='mb-4'>
-        Moreover, our loyalty program rewards you for every purchase, turning every dollar spent into points that can be redeemed for discounts on future orders. Join our community of GK collectors and get exclusive access to workshops, painting tutorials, and sneak peeks at upcoming releases.
+        此外，我們的忠誠度計劃會獎勵您的每次購買，將每花費的一元轉化為可以兌換未來訂單折扣的積分。加入我們的GK收藏家社區，獲得獨家參與工作坊、繪畫教程和即將發布的新品預覽的機會。
       </p>
       <p className='mb-4'>
-        Immerse yourself in the world of GK Paradise today. Discover our curated selections, where each kit tells a story of artistry and passion. Enhance your collection with pieces that you will love to build and display, and experience the perfect blend of quality, detail, and creativity. Shop at GK Paradise now to see what modeling wonders await you.
+        今天就沉浸在GK天堂的世界中。探索我們精心挑選的系列，每個套件都訴說著藝術和激情的故事。用您喜愛製作和展示的作品豐富您的收藏，體驗品質、細節和創意的完美融合。立即在GK天堂購物，看看等待您的建模奇蹟。
       </p>
       <h2 className='mb-2 text-2xl font-semibold'>
-        Discover Exclusive GK Models Only Available at GK Paradise
+        探索GK天堂獨家提供的GK模型
       </h2>
       <p className='mb-4'>
-        Unearth a treasure trove of unique garage kits that you won&apos;t find anywhere else. Our exclusive collections feature limited edition models designed by renowned sculptors and artists, each piece a masterpiece that embodies creativity and distinction. From original character designs to rare licensed figurines, our selection caters to the most discerning collectors.
+        發掘您在其他地方找不到的獨特車庫套件寶藏。我們的獨家收藏包括由知名雕塑家和藝術家設計的限量版模型，每件作品都是體現創意和獨特性的傑作。從原創角色設計到稀有的授權人偶，我們的選擇滿足最挑剔的收藏家需求。
       </p>
       <p className='mb-4'>
-        Our focus on exclusive offerings ensures that our customers enjoy a distinct collecting experience that elevates their hobby to new heights. By continually partnering with talented artists and securing special licensing agreements, we bring fresh, dynamic kits that are at the forefront of the GK world. Explore these unique models and add a touch of exclusivity to your collection that truly sets you apart.
+        我們專注於獨家產品，確保我們的客戶能夠享受到將他們的愛好提升到新高度的獨特收藏體驗。通過不斷與才華橫溢的藝術家合作並獲得特殊的授權協議，我們帶來了處於GK世界前沿的新穎、動態的套件。探索這些獨特的模型，為您的收藏增添真正與眾不同的獨特性。
       </p>
       <p className='mb-4'>
-        Join the GK Paradise family today and tap into a world of exclusive garage kits. Let us be your guide to discovering new models that inspire and challenge you to push your modeling and painting skills further. Whether you&apos;re looking for your next ambitious project or a special piece to crown your collection, find it at GK Paradise.
+        今天就加入GK天堂大家庭，進入獨家車庫套件的世界。讓我們成為您發現新模型的嚮導，這些模型將激發並挑戰您進一步提升建模和繪畫技能。無論您正在尋找下一個雄心勃勃的項目，還是為您的收藏加冕的特殊作品，都可以在GK天堂找到。
       </p>
     </div>
   );

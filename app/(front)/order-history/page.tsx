@@ -5,13 +5,13 @@ import React from 'react';
 import MyOrders from './MyOrders';
 
 export const metadata: Metadata = {
-  title: 'Order History',
+  title: '訂單歷史',
 };
 
 const MyOrderPage = () => {
   return (
     <div>
-      <h1 className='py-2 text-2xl'>Order History</h1>
+      <h1 className='py-2 text-2xl'>訂單歷史</h1>
       <MyOrders />
     </div>
   );

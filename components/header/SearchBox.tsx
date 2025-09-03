@@ -36,11 +36,11 @@ export const SearchBox = () => {
         <select
           name='category'
           defaultValue={formCategory}
-          aria-label='Category'
+          aria-label='類別'
           className='join-item select select-bordered w-[90px]'
           onChange={(e) => setFormCategory(e.target.value)}
         >
-          <option value='all'>All</option>
+          <option value='all'>全部</option>
           {categories?.map((c: string) => (
             <option key={c} value={c}>
               {c}
@@ -49,14 +49,14 @@ export const SearchBox = () => {
         </select>
         <input
           className='input join-item input-bordered w-40 sm:w-44'
-          placeholder='Search'
-          aria-label='Search'
+          placeholder='搜尋'
+          aria-label='搜尋'
           defaultValue={q}
           name='q'
           onChange={(e) => setFormQuery(e.target.value)}
         />
         <button className='btn join-item input-bordered' type='submit'>
-          Search
+          搜尋
         </button>
       </div>
     </form>

@@ -36,7 +36,7 @@ const AddToCart = ({ item }: { item: OrderItem }) => {
       type='button'
       onClick={addToCartHandler}
     >
-      Add to cart
+      加入購物車
     </button>
   );
 };

@@ -15,8 +15,8 @@ const AdminLayout = async ({
     return (
       <div className='relative flex flex-grow p-4'>
         <div>
-          <h1 className='text-2xl'>Unauthorized</h1>
-          <p>Admin permission required</p>
+          <h1 className='text-2xl'>未經授權</h1>
+          <p>需要管理員權限</p>
         </div>
       </div>
     );
@@ -32,7 +32,7 @@ const AdminLayout = async ({
                 className={'dashboard' === activeItem ? 'active' : ''}
                 href='/admin/dashboard'
               >
-                Dashboard
+                儀表板
               </Link>
             </li>
             <li>
@@ -40,7 +40,7 @@ const AdminLayout = async ({
                 className={'orders' === activeItem ? 'active' : ''}
                 href='/admin/orders'
               >
-                Orders
+                訂單
               </Link>
             </li>
             <li>
@@ -48,7 +48,7 @@ const AdminLayout = async ({
                 className={'products' === activeItem ? 'active' : ''}
                 href='/admin/products'
               >
-                Products
+                商品
               </Link>
             </li>
             <li>
@@ -56,7 +56,7 @@ const AdminLayout = async ({
                 className={'users' === activeItem ? 'active' : ''}
                 href='/admin/users'
               >
-                Users
+                用戶
               </Link>
             </li>
             <li>
@@ -64,7 +64,7 @@ const AdminLayout = async ({
                 className={'payment-methods' === activeItem ? 'active' : ''}
                 href='/admin/payment-methods'
               >
-                Payment Methods
+                付款方式
               </Link>
             </li>
           </ul>

@@ -17,16 +17,16 @@ const CartDetails = () => {
     setMounted(true);
   }, [items, itemsPrice, decrease, increase]);
 
-  if (!mounted) return <>Loading...</>;
+  if (!mounted) return <>載入中...</>;
 
   return (
     <div>
-      <h1 className='py-4 text-2xl'>Shopping Cart</h1>
+      <h1 className='py-4 text-2xl'>購物車</h1>
       {items.length === 0 ? (
         <div>
-          <p className='mb-2'>Cart is empty :(</p>
+          <p className='mb-2'>購物車是空的 :(</p>
           <Link href='/' className='btn'>
-            Go shopping
+            去購物
           </Link>
         </div>
       ) : (
@@ -35,9 +35,9 @@ const CartDetails = () => {
             <table className='table'>
               <thead>
                 <tr>
-                  <th>Item</th>
-                  <th>Quantity</th>
-                  <th>Price</th>
+                  <th>商品</th>
+                  <th>數量</th>
+                  <th>價格</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,7 +86,7 @@ const CartDetails = () => {
             <div className='card-body'>
               <ul>
                 <li className='pb-3 text-xl'>
-                  Subtotal: {items.reduce((acc, item) => acc + item.qty, 0)}:
+                  小計: {items.reduce((acc, item) => acc + item.qty, 0)} 件
                   <br />$ {itemsPrice}
                 </li>
                 <li>
@@ -95,7 +95,7 @@ const CartDetails = () => {
                     className='btn btn-primary w-full'
                     onClick={() => router.push('/shipping')}
                   >
-                    Proceed to Checkout
+                    前往結帳
                   </button>
                 </li>
               </ul>

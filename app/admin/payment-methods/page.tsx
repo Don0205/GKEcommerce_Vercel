@@ -3,9 +3,9 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import PaymentMethods from './PaymentMethods';
 
 export const metadata = {
-  title: 'Admin Payment Methods',
+  title: '管理員付款方式',
 };
-const AdminOrdersPage = () => {
+const AdminPaymentMethodsPage = () => {
   return (
     <AdminLayout activeItem='payment-methods'>
       <PaymentMethods />
@@ -13,4 +13,4 @@ const AdminOrdersPage = () => {
   );
 };
 
-export default AdminOrdersPage;
+export default AdminPaymentMethodsPage;

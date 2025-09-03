@@ -6,7 +6,7 @@ import Form from './Form';
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   return {
-    title: `Edit Product ${resolvedParams.id}`,
+    title: `編輯商品 ${resolvedParams.id}`,
   };
 }
 

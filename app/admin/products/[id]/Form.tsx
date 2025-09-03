@@ -28,7 +28,7 @@ export default function ProductEditForm({ productId }: { productId: string }) {
       const data = await res.json();
       if (!res.ok) return toast.error(data.message);
 
-      toast.success('Product updated successfully');
+      toast.success('商品更新成功');
       router.push('/admin/products');
     },
   );
@@ -40,7 +40,7 @@ export default function ProductEditForm({ productId }: { productId: string }) {
     setValue,
   } = useForm<Product>();
 
-  const [images, setImages] = useState<string[]>([]); // 用於管理圖片陣列
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!product) return;
@@ -51,11 +51,11 @@ export default function ProductEditForm({ productId }: { productId: string }) {
     setValue('brand', product.brand);
     setValue('countInStock', product.countInStock);
     setValue('description', product.description);
-    setImages(product.images || []); // 載入現有圖片陣列
+    setImages(product.images || []);
   }, [product, setValue]);
 
   const formSubmit = async (formData: any) => {
-    await updateProduct({ ...formData, images }); // 將 images 陣列傳入
+    await updateProduct({ ...formData, images });
   };
 
   const FormInput = ({
@@ -78,7 +78,7 @@ export default function ProductEditForm({ productId }: { productId: string }) {
           type='text'
           id={id}
           {...register(id, {
-            required: required && `${name} is required`,
+            required: required && `${name}為必填項`,
             pattern,
           })}
           className='input input-bordered w-full max-w-md'
@@ -90,7 +90,6 @@ export default function ProductEditForm({ productId }: { productId: string }) {
     </div>
   );
 
-  // 新增 FormNumberInput 元件（專門處理 number）
   const FormNumberInput = ({
     id,
     name,
@@ -109,8 +108,8 @@ export default function ProductEditForm({ productId }: { productId: string }) {
           type='number'
           id={id}
           {...register(id, {
-            required: required && `${name} is required`,
-            valueAsNumber: true, // 固定啟用，將輸入轉為數字
+            required: required && `${name}為必填項`,
+            valueAsNumber: true,
           })}
           className='input input-bordered w-full max-w-md'
         />
@@ -123,9 +122,9 @@ export default function ProductEditForm({ productId }: { productId: string }) {
 
   const uploadHandler = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
-    if (!fileList) return; // Handle null case, e.g., no files selected
+    if (!fileList) return;
     const files: File[] = Array.from(fileList);
-    const toastId = toast.loading('Uploading images...');
+    const toastId = toast.loading('正在上傳圖片...');
     try {
       const resSign = await fetch('/api/cloudinary-sign', {
         method: 'POST',
@@ -151,37 +150,36 @@ export default function ProductEditForm({ productId }: { productId: string }) {
 
       const newUrls = await Promise.all(uploadPromises);
       setImages((prevImages) => [...prevImages, ...newUrls]);
-      toast.success('Files uploaded successfully', { id: toastId });
+      toast.success('檔案上傳成功', { id: toastId });
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
     }
   };
 
-  // 移除圖片函數
   const removeImage = (index: number) => {
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
   return (
     <div>
-      <h1 className='py-4 text-2xl'>Edit Product {formatId(productId)}</h1>
+      <h1 className='py-4 text-2xl'>編輯商品 {formatId(productId)}</h1>
       <div>
         <form onSubmit={handleSubmit(formSubmit)}>
-          <FormInput name='Name' id='name' required />
-          <FormInput name='Slug' id='slug' required />
-          <FormNumberInput name='Price' id='price' required />
-          <FormInput name='Category' id='category' required />
-          <FormInput name='Brand' id='brand' required />
-          <FormInput name='Description' id='description' required />
-          <FormNumberInput name='Count In Stock' id='countInStock' required />
+          <FormInput name='名稱' id='name' required />
+          <FormInput name='網址別名' id='slug' required />
+          <FormNumberInput name='價格' id='price' required />
+          <FormInput name='類別' id='category' required />
+          <FormInput name='品牌' id='brand' required />
+          <FormInput name='描述' id='description' required />
+          <FormNumberInput name='庫存數量' id='countInStock' required />
 
           <div className='mb-6 md:flex'>
-            <label className='label md:w-1/5'>Images</label>
+            <label className='label md:w-1/5'>圖片</label>
             <div className='md:w-4/5'>
               <input
                 type='file'
                 className='file-input w-full max-w-md'
-                multiple // 允許多檔上傳
+                multiple
                 onChange={uploadHandler}
               />
               <div className='mt-4'>
@@ -189,7 +187,7 @@ export default function ProductEditForm({ productId }: { productId: string }) {
                   <div key={index} className='mb-2 flex items-center'>
                     <img
                       src={img}
-                      alt={`Image ${index + 1}`}
+                      alt={`圖片 ${index + 1}`}
                       className='mr-2 h-20 w-20 object-cover'
                     />
                     <button
@@ -197,7 +195,7 @@ export default function ProductEditForm({ productId }: { productId: string }) {
                       onClick={() => removeImage(index)}
                       className='btn btn-error btn-xs'
                     >
-                      Remove
+                      移除
                     </button>
                   </div>
                 ))}
@@ -211,10 +209,10 @@ export default function ProductEditForm({ productId }: { productId: string }) {
             className='btn btn-primary'
           >
             {isUpdating && <span className='loading loading-spinner'></span>}
-            Update
+            更新
           </button>
           <Link className='btn ml-4 ' href='/admin/products'>
-            Cancel
+            取消
           </Link>
         </form>
       </div>

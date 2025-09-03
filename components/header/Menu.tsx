@@ -32,7 +32,6 @@ const Menu = () => {
       <ul className='flex gap-2'>
         <li className='flex items-center gap-2 md:gap-4'>
           <label className='swap swap-rotate'>
-            {/* this hidden checkbox controls the state */}
             <input
               type='checkbox'
               checked={theme === 'light'}
@@ -44,7 +43,7 @@ const Menu = () => {
           <Link
             href='/cart'
             className='relative mr-1'
-            aria-label='Shopping Cart'
+            aria-label='購物車'
           >
             <ShoppingCart />
             <span className='absolute -right-4 -top-4'>
@@ -69,19 +68,19 @@ const Menu = () => {
               >
                 {session.user.isAdmin && (
                   <li onClick={handleClick}>
-                    <Link href='/admin/dashboard'>Admin Dashboard</Link>
+                    <Link href='/admin/dashboard'>管理員儀表板</Link>
                   </li>
                 )}
 
                 <li onClick={handleClick}>
-                  <Link href='/order-history'>Order history </Link>
+                  <Link href='/order-history'>訂單歷史</Link>
                 </li>
                 <li onClick={handleClick}>
-                  <Link href='/profile'>Profile</Link>
+                  <Link href='/profile'>個人資料</Link>
                 </li>
                 <li onClick={handleClick}>
                   <button type='button' onClick={signOutHandler}>
-                    Sign out
+                    登出
                   </button>
                 </li>
               </ul>
@@ -94,7 +93,7 @@ const Menu = () => {
               type='button'
               onClick={() => signIn()}
             >
-              Sign in
+              登入
             </button>
           </li>
         )}

@@ -13,21 +13,21 @@ const MyOrders = () => {
   const router = useRouter();
   const { data: orders, error, isLoading } = useSWR('/api/orders/mine');
 
-  if (error) return <>An error has occurred</>;
-  if (isLoading) return <>Loading...</>;
-  if (!orders) return <>No orders...</>;
+  if (error) return <>發生錯誤</>;
+  if (isLoading) return <>載入中...</>;
+  if (!orders) return <>沒有訂單...</>;
 
   return (
     <div className='overflow-x-auto'>
       <table className='table'>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>DATE</th>
-            <th>TOTAL</th>
-            <th>PAID</th>
-            <th>DELIVERED</th>
-            <th>ACTION</th>
+            <th>訂單編號</th>
+            <th>日期</th>
+            <th>總額</th>
+            <th>付款狀態</th>
+            <th>配送狀態</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
@@ -41,16 +41,16 @@ const MyOrders = () => {
               <td>
                 {order.isPaid && order.paidAt
                   ? `${format(new Date(order.paidAt), 'yyyy-MM-dd')}`
-                  : 'not paid'}
+                  : '未付款'}
               </td>
               <td>
                 {order.isDelivered && order.deliveredAt
                   ? `${format(new Date(order.deliveredAt), 'yyyy-MM-dd')}`
-                  : 'not delivered'}
+                  : '未配送'}
               </td>
               <td>
                 <Link href={`/order/${order.id}`} passHref>
-                  Details
+                  詳情
                 </Link>
               </td>
             </tr>

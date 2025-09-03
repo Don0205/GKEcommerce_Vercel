@@ -54,7 +54,7 @@ const Form = () => {
         }),
       });
       if (res.status === 200) {
-        toast.success('Profile updated successfully');
+        toast.success('個人資料更新成功');
         const newSession = {
           ...session,
           user: {
@@ -66,7 +66,7 @@ const Form = () => {
         await update(newSession);
       } else {
         const data = await res.json();
-        toast.error(data.message || 'error');
+        toast.error(data.message || '錯誤');
       }
     } catch (err: any) {
       const error =
@@ -80,17 +80,17 @@ const Form = () => {
   return (
     <div className='card mx-auto my-4 max-w-sm bg-base-300'>
       <div className='card-body'>
-        <h1 className='card-title'>Profile</h1>
+        <h1 className='card-title'>個人資料</h1>
         <form onSubmit={handleSubmit(formSubmit)}>
           <div className='my-2'>
             <label className='label' htmlFor='name'>
-              Name
+              姓名
             </label>
             <input
               type='text'
               id='name'
               {...register('name', {
-                required: 'Name is required',
+                required: '請輸入姓名',
               })}
               className='input input-bordered w-full max-w-sm'
             />
@@ -100,16 +100,16 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='email'>
-              Email
+              電子郵件
             </label>
             <input
               type='text'
               id='email'
               {...register('email', {
-                required: 'Email is required',
+                required: '請輸入電子郵件',
                 pattern: {
                   value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
-                  message: 'Email is invalid',
+                  message: '電子郵件格式不正確',
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -120,7 +120,7 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='password'>
-              New Password
+              新密碼
             </label>
             <input
               type='password'
@@ -134,7 +134,7 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='confirmPassword'>
-              Confirm New Password
+              確認新密碼
             </label>
             <input
               type='password'
@@ -142,7 +142,7 @@ const Form = () => {
               {...register('confirmPassword', {
                 validate: (value) => {
                   const { password } = getValues();
-                  return password === value || 'Passwords should match!';
+                  return password === value || '密碼不匹配！';
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -161,7 +161,7 @@ const Form = () => {
               {isSubmitting && (
                 <span className='loading loading-spinner'></span>
               )}
-              Update
+              更新
             </button>
           </div>
         </form>

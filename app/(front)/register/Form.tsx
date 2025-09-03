@@ -59,7 +59,7 @@ const Form = () => {
       });
       if (res.ok) {
         return router.push(
-          `/signin?callbackUrl=${callbackUrl}&success=Account has been created`,
+          `/signin?callbackUrl=${callbackUrl}&success=帳號已成功創建`,
         );
       } else {
         const data = await res.json();
@@ -68,26 +68,26 @@ const Form = () => {
     } catch (err: any) {
       const error =
         err.message && err.message.indexOf('E11000') === 0
-          ? 'Email is duplicate'
+          ? '電子郵件已被使用'
           : err.message;
-      toast.error(error || 'error');
+      toast.error(error || '錯誤');
     }
   };
 
   return (
     <div className='card mx-auto my-4 max-w-sm bg-base-300'>
       <div className='card-body'>
-        <h1 className='card-title'>Register</h1>
+        <h1 className='card-title'>註冊</h1>
         <form onSubmit={handleSubmit(formSubmit)}>
           <div className='my-2'>
             <label className='label' htmlFor='name'>
-              Name
+              姓名
             </label>
             <input
               type='text'
               id='name'
               {...register('name', {
-                required: 'Name is required',
+                required: '請輸入姓名',
               })}
               className='input input-bordered w-full max-w-sm'
             />
@@ -97,16 +97,16 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='email'>
-              Email
+              電子郵件
             </label>
             <input
               type='text'
               id='email'
               {...register('email', {
-                required: 'Email is required',
+                required: '請輸入電子郵件',
                 pattern: {
                   value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
-                  message: 'Email is invalid',
+                  message: '電子郵件格式不正確',
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -117,13 +117,13 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='password'>
-              Password
+              密碼
             </label>
             <input
               type='password'
               id='password'
               {...register('password', {
-                required: 'Password is required',
+                required: '請輸入密碼',
               })}
               className='input input-bordered w-full max-w-sm'
             />
@@ -133,16 +133,16 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='confirmPassword'>
-              Confirm Password
+              確認密碼
             </label>
             <input
               type='password'
               id='confirmPassword'
               {...register('confirmPassword', {
-                required: 'Confirm Password is required',
+                required: '請確認密碼',
                 validate: (value) => {
                   const { password } = getValues();
-                  return password === value || 'Passwords should match!';
+                  return password === value || '密碼不匹配！';
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -160,16 +160,16 @@ const Form = () => {
               {isSubmitting && (
                 <span className='loading loading-spinner'></span>
               )}
-              Register
+              註冊
             </button>
           </div>
         </form>
 
         <div className='divider'> </div>
         <div>
-          Already have an account?{' '}
+          已經有帳號了？{' '}
           <Link className='link' href={`/signin?callbackUrl=${callbackUrl}`}>
-            Login
+            登入
           </Link>
         </div>
       </div>

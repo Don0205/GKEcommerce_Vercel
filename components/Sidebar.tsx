@@ -15,12 +15,12 @@ const Sidebar = () => {
   } = useSWR('/api/products/categories');
 
   if (error) return error.message;
-  if (isLoading || !categories) return 'Loading...';
+  if (isLoading || !categories) return '載入中...';
 
   return (
     <ul className='menu min-h-full w-80 bg-base-200 p-4 text-base-content'>
       <li>
-        <h2 className='text-xl'>Shop Categories</h2>
+        <h2 className='text-xl'>商品分類</h2>
       </li>
       {categories.map((category: string) => (
         <li key={category}>

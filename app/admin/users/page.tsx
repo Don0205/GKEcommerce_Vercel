@@ -4,7 +4,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import Users from './Users';
 
 export const metadata = {
-  title: 'Admin Users',
+  title: '管理員用戶',
 };
 const AdminUsersPage = () => {
   return (

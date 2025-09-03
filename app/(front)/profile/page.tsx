@@ -5,7 +5,7 @@ import React from 'react';
 import Form from './Form';
 
 export const metadata: Metadata = {
-  title: 'Profile',
+  title: '個人資料',
 };
 
 const ProfilePage = async () => {

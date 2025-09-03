@@ -4,13 +4,11 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { SubmitHandler, ValidationRule, useForm, Controller } from 'react-hook-form';
-import PhoneInput from 'react-phone-number-input'; // 導入庫
+import PhoneInput from 'react-phone-number-input';
 
 import CheckoutSteps from '@/components/checkout/CheckoutSteps';
 import useCartService from '@/lib/hooks/useCartStore';
 import { ShippingAddress } from '@/lib/models/OrderModel';
-
-// 如果需要自訂樣式，請在全局導入 'react-phone-number-input/style.css'
 
 const Form = () => {
   const router = useRouter();
@@ -66,7 +64,7 @@ const Form = () => {
         type={type}
         id={id}
         {...register(id, {
-          required: required && `${name} is required`,
+          required: required && `請輸入${name}`,
           pattern,
         })}
         className='input input-bordered w-full max-w-sm'
@@ -84,39 +82,39 @@ const Form = () => {
         <div className='card-body'>
           <h1 className='card-title'>填寫訂單資訊</h1>
           <form onSubmit={handleSubmit(formSubmit)}>
-            <FormInput name='名字' id='name' required />
+            <FormInput name='姓名' id='name' required />
             <FormInput name='國家' id='country' required />
             <FormInput name='地址' id='address' required />
             <FormInput 
-              name='郵箱' 
+              name='電子郵件' 
               id='email' 
               required 
               type='email' 
               pattern={{
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: '無效的郵箱格式',
+                message: '無效的電子郵件格式',
               }}
             />
             <div className='mb-2'>
-              <label className='label'>手機 (請包括全球國家代碼，例如 +86 1234567890)</label>
+              <label className='label'>手機號碼 (請包括國際區號，例如 +886 912345678)</label>
               <Controller
                 name="phone"
                 control={control}
                 rules={{
-                  required: '手機 is required',
+                  required: '請輸入手機號碼',
                   pattern: {
                     value: /^\+[1-9]{1}[0-9]{1,14}$/,
-                    message: '請輸入有效的國際手機號碼 (例如 +86 1234567890)',
+                    message: '請輸入有效的國際手機號碼 (例如 +886 912345678)',
                   },
                 }}
                 render={({ field }) => (
                   <PhoneInput
                     {...field}
-                    defaultCountry="CN" // 預設中國
+                    defaultCountry="TW"
                     international
-                    countryCallingCodeEditable={false} // 禁止編輯代碼
+                    countryCallingCodeEditable={false}
                     placeholder="輸入手機號碼"
-                    className='' // 應用您的樣式
+                    className=''
                   />
                 )}
               />

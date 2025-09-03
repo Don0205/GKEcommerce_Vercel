@@ -1,23 +1,11 @@
 //components\products\ProductItems.tsx
 import productService from '@/lib/services/productService';
 import { convertDocToObj, delay } from '@/lib/utils';
-
-import ProductItem from './ProductItem';
+import Slider from '@/components/slider/Slider';
 
 const ProductItems = async () => {
   await delay(4000);
-  const latestProducts = await productService.getLatest();
-
-  return (
-    <div>
-      <h2 className='my-2 text-2xl md:my-4'>Latest Products</h2>
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:grid-cols-4'>
-        {latestProducts.map((product) => (
-          <ProductItem key={product.slug} product={convertDocToObj(product)} />
-        ))}
-      </div>
-    </div>
-  );
+  return <Slider title="最新商品" getProducts={productService.getLatest} />;
 };
 
 export default ProductItems;
@@ -49,7 +37,7 @@ export const ProductItemsSkeleton = ({
 }) => {
   return (
     <div>
-      <h2 className='my-2 text-2xl md:my-4'>{name}</h2>
+      <h2 className='my-2 text-2xl md:my-4 text-white'>{name}</h2>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:grid-cols-4'>
         {Array.from({ length: qty }).map((_, i) => {
           return <ProductItemSkeleton key={i} />;

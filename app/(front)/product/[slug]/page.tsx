@@ -6,6 +6,7 @@ import { getPlaiceholder } from 'plaiceholder';
 
 import AddToCart from '@/components/products/AddToCart';
 import { Rating } from '@/components/products/Rating';
+import RecommendedProducts from '@/components/products/RecommendedProducts';
 import productService from '@/lib/services/productService';
 import { convertDocToObj } from '@/lib/utils';
 
@@ -13,11 +14,11 @@ export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>; // 已正確
-  searchParams: Promise<{ price?: string | undefined }>; // 更新為 Promise 類型
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ price?: string | undefined }>;
 }) {
-  const resolvedParams = await params; // await 解析 params
-  const resolvedSearchParams = await searchParams; // await 解析 searchParams
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
 
   if (resolvedParams.slug === 'blind-box') {
     const price = resolvedSearchParams.price ? parseFloat(resolvedSearchParams.price) : 0;
@@ -43,11 +44,11 @@ async function ProductPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>; // 已正確
-  searchParams: Promise<{ price?: string | undefined }>; // 更新為 Promise 類型
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ price?: string | undefined }>;
 }) {
-  const resolvedParams = await params; // await 解析 params
-  const resolvedSearchParams = await searchParams; // await 解析 searchParams
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
 
   let product;
 
@@ -55,7 +56,7 @@ async function ProductPage({
     const inputPrice = resolvedSearchParams.price ? parseFloat(resolvedSearchParams.price) : 0;
 
     if (isNaN(inputPrice) || inputPrice <= 0) {
-      return notFound(); // 如果價格無效，顯示 404
+      return notFound();
     }
 
     product = {
@@ -63,12 +64,12 @@ async function ProductPage({
       name: '盲盒',
       slug: 'blind-box',
       category: '盲盒',
-      images: ['/images/placeholder.jpg'], // 改為 images 陣列
+      images: ['/images/placeholder.jpg'],
       price: inputPrice,
       brand: '盲盒品牌',
       rating: 0,
       numReviews: 0,
-      countInStock: 1, // 假設有庫存
+      countInStock: 1,
       description: '這是一個盲盒產品，價格為您輸入的值。',
       isFeatured: false,
       banner: null,
@@ -81,7 +82,6 @@ async function ProductPage({
     }
   }
 
-  // 確保 product.images 有值，如果 undefined 設為空陣列
   const images = product.images || [];
   const imageUrl = images[0] || '/images/placeholder.jpg';
 
@@ -91,34 +91,34 @@ async function ProductPage({
       const res = await fetch(imageUrl);
       if (!res.ok) {
         throw new Error(
-          `Failed to fetch image: ${res.status} ${res.statusText}`,
+          `獲取圖片失敗: ${res.status} ${res.statusText}`,
         );
       }
-      // 確保響應是圖片類型
       const contentType = res.headers.get('content-type');
       if (!contentType?.startsWith('image/')) {
-        throw new Error('Response is not an image');
+        throw new Error('回應不是圖片');
       }
       const buffer = Buffer.from(await res.arrayBuffer());
       if (buffer.length === 0) {
-        throw new Error('Image buffer is empty');
+        throw new Error('圖片緩衝區為空');
       }
       const result = await getPlaiceholder(buffer);
       base64 = result.base64;
     } catch (error) {
-      console.error('Error processing image:', error);
-      // 設置默認 base64 或錯誤處理邏輯
-      base64 = ''; // 或者使用默認佔位圖
+      console.error('處理圖片時出錯:', error);
+      base64 = '';
     }
   } else {
-    // 如果是相對路徑，我們跳過 plaiceholder 處理
-    base64 = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='; // 默認模糊佔位
+    base64 = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
   }
+
+  // 獲取推薦商品
+  const recommendedProducts = await productService.getRecommended(product.category, product.id);
 
   return (
     <div className='my-2'>
       <div className='my-4'>
-        <Link href='/' className='btn'>{`<- Back to Products`}</Link>
+        <Link href='/' className='btn'>{`<- 返回商品列表`}</Link>
       </div>
       <div className='grid gap-4 md:grid-cols-4'>
         <div className='relative aspect-square md:col-span-2'>
@@ -141,7 +141,7 @@ async function ProductPage({
             <li>
               <Rating
                 value={product.rating}
-                caption={`${product.numReviews} ratings`}
+                caption={`${product.numReviews} 條評價`}
               />
             </li>
             <li>{product.brand}</li>
@@ -149,7 +149,7 @@ async function ProductPage({
               <div className='divider'></div>
             </li>
             <li>
-              <p>Description: {product.description}</p>
+              <p>描述: {product.description}</p>
             </li>
           </ul>
         </div>
@@ -157,13 +157,13 @@ async function ProductPage({
           <div className='card mt-3 bg-base-300 shadow-xl md:mt-0'>
             <div className='card-body'>
               <div className='flex justify-between'>
-                <div>Price</div>
+                <div>價格</div>
                 <div>${product.price}</div>
               </div>
               <div className='mb-2 flex justify-between'>
-                <div>Status</div>
+                <div>庫存狀態</div>
                 <div>
-                  {product.countInStock > 0 ? 'In Stock' : 'Unavailable'}
+                  {product.countInStock > 0 ? '有貨' : '缺貨'}
                 </div>
               </div>
               {product.countInStock !== 0 && (
@@ -182,6 +182,9 @@ async function ProductPage({
           </div>
         </div>
       </div>
+      
+      {/* 添加推薦商品部分 */}
+      <RecommendedProducts products={recommendedProducts} />
     </div>
   );
 };

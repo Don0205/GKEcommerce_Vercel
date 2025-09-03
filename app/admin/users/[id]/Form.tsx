@@ -28,7 +28,7 @@ export default function UserEditForm({ userId }: { userId: string }) {
       const data = await res.json();
       if (!res.ok) return toast.error(data.message);
 
-      toast.success('User updated successfully');
+      toast.success('用戶更新成功');
       router.push('/admin/users');
     },
   );
@@ -52,7 +52,7 @@ export default function UserEditForm({ userId }: { userId: string }) {
   };
 
   if (error) return error.message;
-  if (!user) return 'Loading...';
+  if (!user) return '載入中...';
 
   const FormInput = ({
     id,
@@ -74,7 +74,7 @@ export default function UserEditForm({ userId }: { userId: string }) {
           type='text'
           id={id}
           {...register(id, {
-            required: required && `${name} is required`,
+            required: required && `${name}為必填項`,
             pattern,
           })}
           className='input input-bordered w-full max-w-md'
@@ -88,15 +88,15 @@ export default function UserEditForm({ userId }: { userId: string }) {
 
   return (
     <div>
-      <h1 className='py-4 text-2xl'>Edit User {formatId(userId)}</h1>
+      <h1 className='py-4 text-2xl'>編輯用戶 {formatId(userId)}</h1>
       <div>
         <form onSubmit={handleSubmit(formSubmit)}>
-          <FormInput name='Name' id='name' required />
-          <FormInput name='Email' id='email' required />
+          <FormInput name='姓名' id='name' required />
+          <FormInput name='電子郵件' id='email' required />
 
           <div className='my-3 md:flex'>
             <label className='label md:w-1/5' htmlFor='isAdmin'>
-              Admin
+              管理員
             </label>
             <div className='md:w-4/5'>
               <input
@@ -114,10 +114,10 @@ export default function UserEditForm({ userId }: { userId: string }) {
             className='btn btn-primary'
           >
             {isUpdating && <span className='loading loading-spinner'></span>}
-            Update
+            更新
           </button>
           <Link className='btn ml-4' href='/admin/users'>
-            Cancel
+            取消
           </Link>
         </form>
       </div>

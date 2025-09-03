@@ -30,7 +30,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
       });
       const data = await res.json();
       res.ok
-        ? toast.success('Order delivered successfully')
+        ? toast.success('訂單已成功送達')
         : toast.error(data.message);
     },
   );
@@ -56,14 +56,14 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
     })
       .then((response) => response.json())
       .then((orderData) => {
-        toast.success('Order paid successfully');
+        toast.success('訂單已成功付款');
       });
   }
 
   const { data, error } = useSWR(`/api/orders/${orderId}`);
 
   if (error) return error.message;
-  if (!data) return 'Loading...';
+  if (!data) return '載入中...';
 
   const {
     paymentMethod,
@@ -85,46 +85,46 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
 
   return (
     <div>
-      <h1 className='py-4 text-2xl'>Order {orderId}</h1>
+      <h1 className='py-4 text-2xl'>訂單 {orderId}</h1>
       <div className='my-4 grid md:grid-cols-4 md:gap-5'>
         <div className='md:col-span-3'>
           <div className='card bg-base-300'>
             <div className='card-body'>
               <h2 className='card-title'>訂單資訊</h2>
-              <p>名字: {name}</p>
+              <p>姓名: {name}</p>
               <p>國家: {country}</p>
               <p>地址: {address}</p>
-              <p>郵箱: {email}</p>
-              <p>手機: {phone}</p>
+              <p>電子郵件: {email}</p>
+              <p>電話: {phone}</p>
               {isDelivered ? (
-                <div className='text-success'>Delivered at {deliveredAt}</div>
+                <div className='text-success'>已於 {deliveredAt} 送達</div>
               ) : (
-                <div className='text-error'>Not Delivered</div>
+                <div className='text-error'>尚未送達</div>
               )}
             </div>
           </div>
 
           <div className='card mt-4 bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>Payment Method</h2>
+              <h2 className='card-title'>付款方式</h2>
               <p>{paymentMethod}</p>
               {isPaid ? (
-                <div className='text-success'>Paid at {paidAt}</div>
+                <div className='text-success'>已於 {paidAt} 付款</div>
               ) : (
-                <div className='text-error'>Not Paid</div>
+                <div className='text-error'>尚未付款</div>
               )}
             </div>
           </div>
 
           <div className='card mt-4 bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>Items</h2>
+              <h2 className='card-title'>商品</h2>
               <table className='table'>
                 <thead>
                   <tr>
-                    <th>Item</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
+                    <th>商品</th>
+                    <th>數量</th>
+                    <th>價格</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -157,29 +157,29 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
         <div>
           <div className='card bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>Order Summary</h2>
+              <h2 className='card-title'>訂單摘要</h2>
               <ul>
                 <li>
                   <div className='mb-2 flex justify-between'>
-                    <div>Items</div>
+                    <div>商品總額</div>
                     <div>${itemsPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
-                    <div>Tax</div>
+                    <div>稅金</div>
                     <div>${taxPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
-                    <div>Shipping</div>
+                    <div>運費</div>
                     <div>${shippingPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
-                    <div>Total</div>
+                    <div>總計</div>
                     <div>${totalPrice}</div>
                   </div>
                 </li>
@@ -206,7 +206,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
                       {isDelivering && (
                         <span className='loading loading-spinner'></span>
                       )}
-                      Mark as delivered
+                      標記為已送達
                     </button>
                   </li>
                 )}

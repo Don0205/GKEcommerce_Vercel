@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import useSWR from 'swr'; // 新增
+import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 
 import CheckoutSteps from '@/components/checkout/CheckoutSteps';
@@ -25,7 +25,6 @@ const Form = () => {
     clear,
   } = useCartService();
 
-  // mutate data in the backend by calling trigger function
   const { trigger: placeOrder, isMutating: isPlacing } = useSWRMutation(
     `/api/orders/mine`,
     async (url) => {
@@ -51,7 +50,7 @@ const Form = () => {
       const data = await res.json();
       if (res.ok) {
         clear();
-        toast.success('Order placed successfully');
+        toast.success('訂單已成功下達');
         return router.push(`/order/${data.order._id}`);
       } else {
         toast.error(data.message);
@@ -59,8 +58,7 @@ const Form = () => {
     },
   );
 
-  // 如果 paymentMethod 是 'Bank'，載入卡號
-  const { data: bankData } = useSWR(paymentMethod === 'Bank' ? '/api/bank' : null);
+  const { data: bankData } = useSWR(paymentMethod === '銀行轉帳' ? '/api/bank' : null);
 
   useEffect(() => {
     if (!paymentMethod) {
@@ -69,8 +67,7 @@ const Form = () => {
     if (items.length === 0) {
       return router.push('/');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentMethod, router]);
+  }, [paymentMethod, router, items.length]);
 
   const [mounted, setMounted] = useState(false);
 
@@ -78,7 +75,7 @@ const Form = () => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return <>Loading...</>;
+  if (!mounted) return <>載入中...</>;
 
   return (
     <div>
@@ -88,16 +85,16 @@ const Form = () => {
         <div className='overflow-x-auto md:col-span-3'>
           <div className='card bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>Shipping Address</h2>
+              <h2 className='card-title'>送貨地址</h2>
               <p>{shippingAddress.name}</p>
               <p>
                 {shippingAddress.address}, {shippingAddress.country}{' '}
               </p>
-              <p>Email: {shippingAddress.email}</p>
-              <p>Phone: {shippingAddress.phone}</p>
+              <p>電子郵件: {shippingAddress.email}</p>
+              <p>電話: {shippingAddress.phone}</p>
               <div>
                 <Link className='btn' href='/shipping'>
-                  Edit
+                  編輯
                 </Link>
               </div>
             </div>
@@ -105,14 +102,14 @@ const Form = () => {
 
           <div className='card mt-4 bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>Payment Method</h2>
+              <h2 className='card-title'>付款方式</h2>
               <p>{paymentMethod}</p>
-              {paymentMethod === 'Bank' && bankData?.cardNum && (
-                <p>Bank Card Number: {bankData.cardNum}</p>
+              {paymentMethod === '銀行轉帳' && bankData?.cardNum && (
+                <p>銀行卡號: {bankData.cardNum}</p>
               )}
               <div>
                 <Link className='btn' href='/payment'>
-                  Edit
+                  編輯
                 </Link>
               </div>
             </div>
@@ -120,13 +117,13 @@ const Form = () => {
 
           <div className='card mt-4 bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>Items</h2>
+              <h2 className='card-title'>商品</h2>
               <table className='table'>
                 <thead>
                   <tr>
-                    <th>Item</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
+                    <th>商品</th>
+                    <th>數量</th>
+                    <th>價格</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,7 +153,7 @@ const Form = () => {
               </table>
               <div>
                 <Link className='btn' href='/cart'>
-                  Edit
+                  編輯
                 </Link>
               </div>
             </div>
@@ -166,29 +163,29 @@ const Form = () => {
         <div>
           <div className='card bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>Order Summary</h2>
+              <h2 className='card-title'>訂單摘要</h2>
               <ul className='space-y-3'>
                 <li>
                   <div className=' flex justify-between'>
-                    <div>Items</div>
+                    <div>商品總額</div>
                     <div>${itemsPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
-                    <div>Tax</div>
+                    <div>稅金</div>
                     <div>${taxPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
-                    <div>Shipping</div>
+                    <div>運費</div>
                     <div>${shippingPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
-                    <div>Total</div>
+                    <div>總計</div>
                     <div>${totalPrice}</div>
                   </div>
                 </li>
@@ -202,7 +199,7 @@ const Form = () => {
                     {isPlacing && (
                       <span className='loading loading-spinner'></span>
                     )}
-                    Place Order
+                    下單
                   </button>
                 </li>
               </ul>

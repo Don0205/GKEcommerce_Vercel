@@ -47,11 +47,11 @@ const Form = () => {
   return (
     <div className='card mx-auto my-4 max-w-sm bg-base-300'>
       <div className='card-body'>
-        <h1 className='card-title'>Sign in</h1>
+        <h1 className='card-title'>登入</h1>
         {params.get('error') && (
           <div className='alert text-error'>
             {params.get('error') === 'CredentialsSignin'
-              ? 'Invalid email or password'
+              ? '無效的電子郵件或密碼'
               : params.get('error')}
           </div>
         )}
@@ -61,16 +61,16 @@ const Form = () => {
         <form onSubmit={handleSubmit(formSubmit)}>
           <div className='my-2'>
             <label className='label' htmlFor='email'>
-              Email
+              電子郵件
             </label>
             <input
               type='text'
               id='email'
               {...register('email', {
-                required: 'Email is required',
+                required: '請輸入電子郵件',
                 pattern: {
                   value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
-                  message: 'Email is invalid',
+                  message: '無效的電子郵件格式',
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -81,13 +81,13 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='password'>
-              Password
+              密碼
             </label>
             <input
               type='password'
               id='password'
               {...register('password', {
-                required: 'Password is required',
+                required: '請輸入密碼',
               })}
               className='input input-bordered w-full max-w-sm'
             />
@@ -104,14 +104,14 @@ const Form = () => {
               {isSubmitting && (
                 <span className='loading loading-spinner'></span>
               )}
-              Sign in
+              登入
             </button>
           </div>
         </form>
         <div>
-          Need an account?{' '}
+          還沒有帳號？{' '}
           <Link className='link' href={`/register?callbackUrl=${callbackUrl}`}>
-            Register
+            註冊
           </Link>
         </div>
       </div>

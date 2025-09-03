@@ -4,7 +4,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import Orders from './Orders';
 
 export const metadata = {
-  title: 'Admin Orders',
+  title: '管理員訂單',
 };
 const AdminOrdersPage = () => {
   return (

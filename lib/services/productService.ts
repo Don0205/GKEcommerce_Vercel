@@ -116,6 +116,17 @@ const getCategories = cache(async () => {
   return categories.map((c) => c.category);
 });
 
+const getRecommended = cache(async (category: string, currentProductId: string) => {
+  const products = await prisma.product.findMany({
+    where: {
+      category: category,
+      id: { not: currentProductId },
+    },
+    take: 4, // 限制返回4個推薦商品
+  });
+  return products as Product[];
+});
+
 const productService = {
   getLatest,
   getFeatured,
@@ -123,6 +134,7 @@ const productService = {
   getByQuery,
   getCategories,
   getTopRated,
+  getRecommended,
 };
 
 export default productService;

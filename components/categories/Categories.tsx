@@ -3,9 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import Overlay from './Overlay';
-import Shirts from '../../public/images/categories/blidBox.jpg';
-import Pants from '../../public/images/categories/figures.avif';
-import Handbags from '../../public/images/categories/hero.avif';
+import BlidBox from '../../public/images/categories/blidBox.jpg';
+import Figures from '../../public/images/categories/Figures.jpg';
+import Hero from '../../public/images/categories/Hero.jpg';
 
 const Categories = () => {
   return (
@@ -15,8 +15,8 @@ const Categories = () => {
         className='group relative col-span-2 row-span-1 overflow-hidden md:row-span-2'
       >
         <Image
-          src={Shirts}
-          alt='Collection of blidBox'
+          src={BlidBox}
+          alt='盲盒系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
@@ -26,34 +26,34 @@ const Categories = () => {
         <Overlay category='盲盒' />
       </Link>
       <Link
-        href='/search?category=Figures'
+        href='/search?category=模型'
         className='group relative col-span-2 overflow-hidden'
       >
         <Image
-          src={Pants}
-          alt='Collection of Figures'
+          src={Figures}
+          alt='模型系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='Figures' />
+        <Overlay category='模型' />
       </Link>
       <Link
-        href='/search?category=Hero'
+        href='/search?category=英雄'
         className='group relative col-span-2 overflow-hidden'
       >
         <Image
-          src={Handbags}
-          alt='Collection of Hero'
+          src={Hero}
+          alt='英雄系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='Hero' />
+        <Overlay category='英雄' />
       </Link>
     </div>
   );

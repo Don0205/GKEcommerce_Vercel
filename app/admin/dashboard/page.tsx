@@ -4,7 +4,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import Dashboard from './Dashboard';
 
 export const metadata = {
-  title: 'Admin Dashboard',
+  title: '管理員儀表板',
 };
 const DashbaordPage = () => {
   return (

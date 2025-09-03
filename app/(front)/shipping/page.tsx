@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 import Form from './Form';
 
 export const metadata: Metadata = {
-  title: 'Shipping',
+  title: '運送資訊',
 };
 
 const ShippingPage = async () => {

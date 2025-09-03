@@ -18,7 +18,7 @@ export default function Products() {
   const { trigger: deleteProduct } = useSWRMutation(
     `/api/admin/products`,
     async (url, { arg }: { arg: { productId: string } }) => {
-      const toastId = toast.loading('Deleting product...');
+      const toastId = toast.loading('正在刪除商品...');
       const res = await fetch(`${url}/${arg.productId}`, {
         method: 'DELETE',
         headers: {
@@ -27,7 +27,7 @@ export default function Products() {
       });
       const data = await res.json();
       res.ok
-        ? toast.success('Product deleted successfully', {
+        ? toast.success('商品刪除成功', {
             id: toastId,
           })
         : toast.error(data.message, {
@@ -48,25 +48,25 @@ export default function Products() {
       const data = await res.json();
       if (!res.ok) return toast.error(data.message);
 
-      toast.success('Product created successfully');
+      toast.success('商品創建成功');
       router.push(`/admin/products/${data.product.id}`);
     },
   );
 
-  if (error) return 'An error has occurred.';
-  if (!products) return 'Loading...';
+  if (error) return '發生錯誤。';
+  if (!products) return '載入中...';
 
   return (
     <div>
       <div className='flex items-center justify-between'>
-        <h1 className='py-4 text-2xl'>Products</h1>
+        <h1 className='py-4 text-2xl'>商品</h1>
         <button
           disabled={isCreating}
           onClick={() => createProduct()}
           className='btn btn-primary btn-sm'
         >
           {isCreating && <span className='loading loading-spinner'></span>}
-          Create
+          創建
         </button>
       </div>
 
@@ -74,13 +74,13 @@ export default function Products() {
         <table className='table table-zebra'>
           <thead>
             <tr>
-              <th>id</th>
-              <th>name</th>
-              <th>price</th>
-              <th>category</th>
-              <th>count in stock</th>
-              <th>rating</th>
-              <th>actions</th>
+              <th>編號</th>
+              <th>名稱</th>
+              <th>價格</th>
+              <th>類別</th>
+              <th>庫存數量</th>
+              <th>評分</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
@@ -98,7 +98,7 @@ export default function Products() {
                     type='button'
                     className='btn btn-ghost btn-sm'
                   >
-                    Edit
+                    編輯
                   </Link>
                   &nbsp;
                   <button
@@ -106,7 +106,7 @@ export default function Products() {
                     type='button'
                     className='btn btn-ghost btn-sm'
                   >
-                    Delete
+                    刪除
                   </button>
                 </td>
               </tr>
