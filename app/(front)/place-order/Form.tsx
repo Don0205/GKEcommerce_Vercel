@@ -58,7 +58,7 @@ const Form = () => {
     },
   );
 
-  const { data: bankData } = useSWR(paymentMethod === '銀行轉帳' ? '/api/bank' : null);
+  const { data: bankData } = useSWR(paymentMethod === 'Bank' ? '/api/bank' : null);
 
   useEffect(() => {
     if (!paymentMethod) {
@@ -104,8 +104,13 @@ const Form = () => {
             <div className='card-body'>
               <h2 className='card-title'>付款方式</h2>
               <p>{paymentMethod}</p>
-              {paymentMethod === '銀行轉帳' && bankData?.cardNum && (
-                <p>銀行卡號: {bankData.cardNum}</p>
+              {paymentMethod === 'Bank' && (
+                <>
+                <p>銀行卡號: {bankData?.cardNum}</p>
+                <p>分行號碼: {bankData?.branchNum}</p>
+                <p>帳戶名稱: {bankData?.accountName}</p>
+                <p>客戶轉帳時必須備註(辨識碼)</p>
+                </>
               )}
               <div>
                 <Link className='btn' href='/payment'>

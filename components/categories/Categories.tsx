@@ -11,19 +11,19 @@ const Categories = () => {
   return (
     <div className='grid auto-rows-[300px] grid-cols-2 gap-4 md:auto-rows-[330px] md:grid-cols-4'>
       <Link
-        href='/search?category=火影'
+        href='/search?category=blindBox'
         className='group relative col-span-2 row-span-1 overflow-hidden md:row-span-2'
       >
         <Image
           src={BlidBox}
-          alt='火影系列'
+          alt='盲盒系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='火影' />
+        <Overlay category='盲盒' />
       </Link>
       <Link
         href='/search?category=海賊王'

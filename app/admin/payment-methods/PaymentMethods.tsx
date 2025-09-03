@@ -1,4 +1,3 @@
-// app/admin/payment-methods/page.tsx
 'use client';
 import React from 'react';
 import toast from 'react-hot-toast';
@@ -27,11 +26,11 @@ const PaymentMethods = () => {
 
   const { trigger: updateBank, isMutating: isUpdatingBank } = useSWRMutation(
     '/api/bank',
-    async (url, { arg }: { arg: { cardNum: string } }) => {
+    async (url, { arg }: { arg: { cardNum: string; accountName: string; branchNum: string } }) => {
       const res = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cardNum: arg.cardNum }),
+        body: JSON.stringify({ cardNum: arg.cardNum, accountName: arg.accountName, branchNum: arg.branchNum }),
       });
       if (!res.ok) {
         throw new Error('更新銀行卡失敗');
@@ -42,15 +41,19 @@ const PaymentMethods = () => {
   );
 
   const [cardNum, setCardNum] = React.useState(bankData?.cardNum || '');
+  const [accountName, setAccountName] = React.useState(bankData?.accountName || '');
+  const [branchNum, setBranchNum] = React.useState(bankData?.branchNum || '');
 
   React.useEffect(() => {
     if (bankData) {
       setCardNum(bankData.cardNum || '');
+      setAccountName(bankData.accountName || '');
+      setBranchNum(bankData.branchNum || '');
     }
   }, [bankData]);
 
   const handleUpdateBank = () => {
-    updateBank({ cardNum });
+    updateBank({ cardNum, accountName, branchNum });
   };
 
   if (methodsError || bankError) return '載入數據時出錯';
@@ -95,6 +98,20 @@ const PaymentMethods = () => {
             onChange={(e) => setCardNum(e.target.value)}
             className='input input-bordered w-full max-w-xs'
             placeholder='輸入卡號'
+          />
+          <input
+            type='text'
+            value={accountName}
+            onChange={(e) => setAccountName(e.target.value)}
+            className='input input-bordered w-full max-w-xs mt-4'
+            placeholder='輸入帳戶名稱'
+          />
+          <input
+            type='text'
+            value={branchNum}
+            onChange={(e) => setBranchNum(e.target.value)}
+            className='input input-bordered w-full max-w-xs mt-4'
+            placeholder='輸入分行號碼'
           />
           <button
             className='btn btn-primary mt-4'

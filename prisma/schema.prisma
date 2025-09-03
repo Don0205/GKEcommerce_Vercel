@@ -89,4 +89,6 @@ model PaymentMethod {
 model Bank {
   id String @id @default(cuid())
   CardNum String
+  BranchNum String
+  AccountName String
 }

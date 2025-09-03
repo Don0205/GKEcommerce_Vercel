@@ -1,11 +1,13 @@
-// app/(front)/search/page.tsx
 import Link from 'next/link';
 
+import { BlindBoxSearch } from '@/components/header/BlindBoxSearch'; // 假設路徑正確
 import ProductItem from '@/components/products/ProductItem';
 import { Rating } from '@/components/products/Rating';
 import prisma from '@/lib/dbConnect';
 import { Product } from '@/lib/models/ProductModel';
 import productServices from '@/lib/services/productService';
+
+import BlidBox from '../../public/images/categories/blidBox.jpg';
 
 const sortOrders = ['最新', '最低價', '最高價', '評分'];
 const prices = [
@@ -81,6 +83,10 @@ export default async function SearchPage({
     page = '1',
   } = resolvedSearchParams;
 
+  const isBlindBox = category === 'blindBox';
+  const inputAmount = parseFloat(q);
+  const hasValidPrice = !isNaN(inputAmount) && q !== 'all';
+
   const getFilterUrl = ({
     c,
     s,
@@ -102,7 +108,12 @@ export default async function SearchPage({
     if (s) params.sort = s;
     return `/search?${new URLSearchParams(params).toString()}`;
   };
-  const categories = await productServices.getCategories();
+
+  let categories = await productServices.getCategories();
+  // 手動添加 blindBox 類別
+  if (!categories.includes('blindBox')) {
+    categories = [...categories, 'blindBox'];
+  }
   let { countProducts, products, pages } = await productServices.getByQuery({
     category,
     q,
@@ -111,20 +122,65 @@ export default async function SearchPage({
     page,
     sort,
   });
-  const inputAmount = parseFloat(q);
-  if (!isNaN(inputAmount) && q !== 'all') {
-    const allProducts = await prisma.product.findMany({
-      select: { price: true },
-    });
-    const prices = allProducts.map((p: { price: number }) => p.price);
-    const selectedPrices = knapsackClosestSum(prices, inputAmount);
-    products = await prisma.product.findMany({
-      where: { price: { in: selectedPrices } },
-    }) as Product[];
+
+  if (isBlindBox) {
+    if (hasValidPrice) {
+      products = [
+        {
+          id: 'blind-box-virtual',
+          name: 'blindBox',
+          slug: 'blind-box',
+          category: 'blindBox',
+          images: ['/images/categories/blidBox.jpg'], // 替換為實際盲盒圖片
+          price: inputAmount,
+          brand: 'Blind Box',
+          rating: 0,
+          numReviews: 0,
+          countInStock: 1,
+          description: '盲盒產品，價格為您輸入的值。',
+          isFeatured: false,
+          banner: undefined,
+        } as Product,
+      ];
+      countProducts = 1;
+      pages = 1;
+    } else {
+      products = [];
+      countProducts = 0;
+      pages = 0;
+    }
+  } else if (hasValidPrice) {
+    // 舊的推薦邏輯
+    const allProducts = (await prisma.product.findMany()) as Product[];
+    products = knapsackClosestSum(allProducts, inputAmount);
     countProducts = products.length;
     pages = 1;
   }
-  
+
+  if (isBlindBox) {
+    return (
+      <div className='my-4 text-center'>
+        <BlindBoxSearch />
+        {hasValidPrice ? (
+          <div className='mt-4'>
+            <div className='text-xl'>您的盲盒：</div>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+              {products.map((product) => (
+                <ProductItem
+                  key={product.slug}
+                  product={product}
+                  extraQuery={{ price: q }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className='mt-4'>請輸入您想要的價格來獲得自己的盲盒</p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className='grid md:grid-cols-5 md:gap-5'>
       <div>
@@ -133,9 +189,7 @@ export default async function SearchPage({
           <ul>
             <li>
               <Link
-                className={`link-hover link ${
-                  'all' === category && 'link-primary'
-                }`}
+                className={`link-hover link ${'all' === category && 'link-primary'}`}
                 href={getFilterUrl({ c: 'all' })}
               >
                 任何
@@ -144,9 +198,7 @@ export default async function SearchPage({
             {categories.map((c: string) => (
               <li key={c}>
                 <Link
-                  className={`link-hover link ${
-                    c === category && 'link-primary'
-                  }`}
+                  className={`link-hover link ${c === category && 'link-primary'}`}
                   href={getFilterUrl({ c })}
                 >
                   {c}
@@ -160,9 +212,7 @@ export default async function SearchPage({
           <ul>
             <li>
               <Link
-                className={`link-hover link ${
-                  'all' === price && 'link-primary'
-                }`}
+                className={`link-hover link ${'all' === price && 'link-primary'}`}
                 href={getFilterUrl({ p: 'all' })}
               >
                 任何
@@ -172,9 +222,7 @@ export default async function SearchPage({
               <li key={p.value}>
                 <Link
                   href={getFilterUrl({ p: p.value })}
-                  className={`link-hover link ${
-                    p.value === price && 'link-primary'
-                  }`}
+                  className={`link-hover link ${p.value === price && 'link-primary'}`}
                 >
                   {p.name}
                 </Link>
@@ -188,9 +236,7 @@ export default async function SearchPage({
             <li>
               <Link
                 href={getFilterUrl({ r: 'all' })}
-                className={`link-hover link ${
-                  'all' === rating && 'link-primary'
-                }`}
+                className={`link-hover link ${'all' === rating && 'link-primary'}`}
               >
                 任何
               </Link>
@@ -199,9 +245,7 @@ export default async function SearchPage({
               <li key={r}>
                 <Link
                   href={getFilterUrl({ r: `${r}` })}
-                  className={`link-hover link ${
-                    `${r}` === rating && 'link-primary'
-                  }`}
+                  className={`link-hover link ${`${r}` === rating && 'link-primary'}`}
                 >
                   <Rating caption={' 以上'} value={r} />
                 </Link>
@@ -233,9 +277,7 @@ export default async function SearchPage({
             {sortOrders.map((s) => (
               <Link
                 key={s}
-                className={`link-hover link mx-2 ${
-                  sort == s ? 'link-primary' : ''
-                } `}
+                className={`link-hover link mx-2 ${sort == s ? 'link-primary' : ''} `}
                 href={getFilterUrl({ s })}
               >
                 {s}
@@ -247,7 +289,13 @@ export default async function SearchPage({
         <div>
           <div className='grid grid-cols-1 gap-4 md:grid-cols-3 '>
             {products.map((product) => (
-              <ProductItem key={product.slug} product={product} />
+              <ProductItem
+                key={product.slug}
+                product={product}
+                extraQuery={
+                  product.slug === 'blind-box' ? { price: q } : undefined
+                }
+              />
             ))}
           </div>
           <div className='join'>
@@ -270,8 +318,9 @@ export default async function SearchPage({
   );
 }
 
-function knapsackClosestSum(prices: number[], target: number): number[] {
-  const n = prices.length;
+function knapsackClosestSum(allProducts: Product[], target: number): Product[] {
+  const n = allProducts.length;
+  const prices = allProducts.map((p) => p.price);
   const dp = Array.from({ length: n + 1 }, () => Array(target + 1).fill(false));
   dp[0][0] = true;
   for (let i = 1; i <= n; i++) {
@@ -290,14 +339,15 @@ function knapsackClosestSum(prices: number[], target: number): number[] {
     }
   }
   // 重建選取
-  const selection = [];
-  let i = n, j = maxSum;
+  const selected: Product[] = [];
+  let i = n,
+    j = maxSum;
   while (i > 0 && j > 0) {
     if (dp[i][j] && !dp[i - 1][j]) {
-      selection.push(prices[i - 1]);
+      selected.push(allProducts[i - 1]);
       j -= prices[i - 1];
     }
     i--;
   }
-  return selection;
+  return selected;
 }

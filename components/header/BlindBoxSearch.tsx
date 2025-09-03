@@ -1,38 +1,52 @@
-// components/header/BlindBoxSearch.tsx
+//components\header\BlindBoxSearch.tsx
 'use client';
 
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next-nprogress-bar';
+import { useState } from 'react';
+import useSWR from 'swr';
 
 export const BlindBoxSearch = () => {
   const searchParams = useSearchParams();
-  const q = searchParams.get('q') || 'all';
+  const q = searchParams.get('q') || '';
   const category = searchParams.get('category') || 'all';
   const router = useRouter();
 
-  const handleClick = async () => {
-    try {
-      const res = await fetch('/api/products/random-price');
-      if (!res.ok) {
-        throw new Error('獲取隨機價格失敗');
-      }
-      const { price } = await res.json();
-      const priceRange = `${price}-${price}`;
-      router.push(`/search?category=${category}&q=${q}&price=${priceRange}`);
-    } catch (error) {
-      console.error(error);
-      // 可選: 顯示錯誤訊息給用戶，例如使用 toast
-    }
+  const [formCategory, setFormCategory] = useState(category);
+  const [formQuery, setFormQuery] = useState(q);
+
+  const {
+    data: categories,
+    error,
+    isLoading,
+  } = useSWR('/api/products/categories');
+
+  if (error) return error.message;
+
+  if (isLoading) return <div className='skeleton flex h-12 w-[371px]'></div>;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/search?category=blindBox&q=${formQuery}`);
   };
 
   return (
-    <div className='mt-2'>
-      <button 
-        onClick={handleClick} 
-        className='btn btn-primary join-item'
-      >
-        金額盲盒搜索
-      </button>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <div className='join'>
+        
+        <input
+          className='input join-item input-bordered w-40 sm:w-44'
+          placeholder='搜尋'
+          aria-label='搜尋'
+          defaultValue={q}
+          name='q'
+          onChange={(e) => setFormQuery(e.target.value)}
+          type='number'
+        />
+        <button className='btn join-item input-bordered' type='submit'>
+          搜尋
+        </button>
+      </div>
+    </form>
   );
 };

@@ -84,7 +84,7 @@ export const POST = auth(async (req) => {
 
     const newOrder = await prisma.order.create({
       data: {
-        user: { connect: { id: user._id } },  // 注意：user.id 而非 user._id
+        user: { connect: { id: user.id } },  // 注意：user.id 而非 user._id
         items: {
           create: dbOrderItems.map((item: any) => ({
             name: item.name,

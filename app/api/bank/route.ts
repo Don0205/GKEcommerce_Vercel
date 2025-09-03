@@ -4,23 +4,17 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/dbConnect';
 
-export const GET = auth(async (req) => {
-  const { user } = req.auth || {};
-
-  if (!user) {
-    return NextResponse.json({ message: 'unauthorized' }, { status: 401 });
-  }
-
+export const GET = async () => {
   try {
     const bank = await prisma.bank.findFirst(); // 假設只有一個銀行記錄
     if (!bank) {
       return NextResponse.json({ message: 'No bank info found' }, { status: 404 });
     }
-    return NextResponse.json({ cardNum: bank.CardNum });
+    return NextResponse.json({ cardNum: bank.CardNum, accountName: bank.AccountName, branchNum: bank.BranchNum });
   } catch (err: any) {
     return NextResponse.json({ message: err.message }, { status: 500 });
   }
-}) as any;
+};
 
 export const PUT = auth(async (req) => {
   const { user } = req.auth || {};
@@ -29,7 +23,7 @@ export const PUT = auth(async (req) => {
     return NextResponse.json({ message: 'unauthorized' }, { status: 401 });
   }
 
-  const { cardNum } = await req.json();
+  const { cardNum, accountName, branchNum } = await req.json();
 
   if (!cardNum) {
     return NextResponse.json({ message: 'Card number is required' }, { status: 400 });
@@ -41,13 +35,21 @@ export const PUT = auth(async (req) => {
     if (!bank) {
       // 如果無記錄，創建新的一個
       bank = await prisma.bank.create({
-        data: { CardNum: cardNum },
+        data: { 
+          CardNum: cardNum,
+          AccountName: accountName,
+          BranchNum: branchNum
+        },
       });
     } else {
       // 更新現有記錄
       bank = await prisma.bank.update({
         where: { id: bank.id },
-        data: { CardNum: cardNum },
+        data: { 
+          CardNum: cardNum,
+          AccountName: accountName,
+          BranchNum: branchNum
+        },
       });
     }
 
