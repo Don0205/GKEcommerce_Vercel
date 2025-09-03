@@ -1,11 +1,11 @@
 import Link from 'next/link';
 
+import { BlindBoxSearch } from '@/components/header/BlindBoxSearch';
 import ProductItem from '@/components/products/ProductItem';
 import { Rating } from '@/components/products/Rating';
 import prisma from '@/lib/dbConnect';
 import { Product } from '@/lib/models/ProductModel';
 import productServices from '@/lib/services/productService';
-import { BlindBoxSearch } from '@/components/header/BlindBoxSearch';
 
 import BlidBox from '../../public/images/categories/blidBox.jpg';
 
