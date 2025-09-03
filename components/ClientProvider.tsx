@@ -1,11 +1,11 @@
 //components\ClientProvider.tsx
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { SWRConfig } from 'swr';
-import { usePathname } from 'next/navigation';
 
 import { cartStore } from '@/lib/hooks/useCartStore';
 import useLayoutService from '@/lib/hooks/useLayout';

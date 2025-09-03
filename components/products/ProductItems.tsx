@@ -1,7 +1,7 @@
 //components\products\ProductItems.tsx
+import Slider from '@/components/slider/Slider';
 import productService from '@/lib/services/productService';
 import { convertDocToObj, delay } from '@/lib/utils';
-import Slider from '@/components/slider/Slider';
 
 const ProductItems = async () => {
   await delay(4000);

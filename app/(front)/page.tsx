@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import Carousel, { CarouselSkeleton } from '@/components/carousel/carousel';
+import InfoCarousel from '@/components/carousel/InfoCarousel';
 import Categories from '@/components/categories/Categories';
 import Icons from '@/components/icons/Icons';
 import ProductItems, {
@@ -9,7 +10,6 @@ import ProductItems, {
 } from '@/components/products/ProductItems';
 import ReadMore from '@/components/readMore/ReadMore';
 import Text from '@/components/readMore/Text';
-import InfoCarousel from '@/components/carousel/InfoCarousel';
 
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_APP_NAME || 'GK天堂',

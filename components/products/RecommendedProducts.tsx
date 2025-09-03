@@ -1,5 +1,6 @@
 // components/products/RecommendedProducts.tsx
 import React from 'react';
+
 import ProductItem from '@/components/products/ProductItem';
 import { Product } from '@/lib/models/ProductModel';
 
