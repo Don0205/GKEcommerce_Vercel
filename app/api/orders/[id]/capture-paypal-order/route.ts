@@ -1,4 +1,4 @@
-//app\api\orders\[id]\capture-paypal-order\route.ts
+//app\api\orders\[id]\capture-paypal-order\route.ts Q
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/dbConnect';
 import { paypal } from '@/lib/paypal';
