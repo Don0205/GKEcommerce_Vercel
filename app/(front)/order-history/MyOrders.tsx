@@ -18,9 +18,9 @@ const MyOrders = () => {
   if (!orders) return <>沒有訂單...</>;
 
   return (
-    <div className='overflow-x-auto'>
-      <table className='table'>
-        <thead>
+    <div className='overflow-x-auto text-white'>
+      <table className='table text-white'>
+        <thead className="text-white">
           <tr>
             <th>訂單編號</th>
             <th>日期</th>

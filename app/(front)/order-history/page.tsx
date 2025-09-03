@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const MyOrderPage = () => {
   return (
     <div>
-      <h1 className='py-2 text-2xl'>訂單歷史</h1>
+      <h1 className='py-2 text-2xl text-white'>訂單歷史</h1>
       <MyOrders />
     </div>
   );

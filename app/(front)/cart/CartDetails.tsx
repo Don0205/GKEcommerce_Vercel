@@ -21,10 +21,10 @@ const CartDetails = () => {
 
   return (
     <div>
-      <h1 className='py-4 text-2xl'>購物車</h1>
+      <h1 className='py-4 text-2xl text-white'>購物車</h1>
       {items.length === 0 ? (
         <div>
-          <p className='mb-2'>購物車是空的 :(</p>
+          <p className='mb-2 text-white'>購物車是空的 :(</p>
           <Link href='/' className='btn'>
             去購物
           </Link>
@@ -34,7 +34,7 @@ const CartDetails = () => {
           <div className='overflow-x-auto md:col-span-3'>
             <table className='table'>
               <thead>
-                <tr>
+                <tr className='text-white'>
                   <th>商品</th>
                   <th>數量</th>
                   <th>價格</th>
@@ -55,7 +55,7 @@ const CartDetails = () => {
                           height={50}
                         />
                       </Link>
-                      <span className='px-2'>{item.name}</span>
+                      <span className='px-2 text-white'>{item.name}</span>
                     </td>
                     <td>
                       <div>
@@ -66,7 +66,7 @@ const CartDetails = () => {
                         >
                           -
                         </button>
-                        <span className='px-2'>{item.qty}</span>
+                        <span className='px-2 text-white'>{item.qty}</span>
                         <button
                           className='btn'
                           type='button'
@@ -76,7 +76,7 @@ const CartDetails = () => {
                         </button>
                       </div>
                     </td>
-                    <td>$ {item.price}</td>
+                    <td className='text-white'>$ {item.price}</td>
                   </tr>
                 ))}
               </tbody>
