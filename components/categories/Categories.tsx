@@ -53,7 +53,7 @@ const Categories = () => {
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='v' />
+        <Overlay category='曼威' />
       </Link>
     </div>
   );
