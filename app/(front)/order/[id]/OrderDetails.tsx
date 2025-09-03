@@ -85,7 +85,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
 
   return (
     <div>
-      <h1 className='py-4 text-2xl'>訂單 {orderId}</h1>
+      <h1 className='py-4 text-2xl text-white'>訂單 {orderId}</h1>
       <div className='my-4 grid md:grid-cols-4 md:gap-5'>
         <div className='md:col-span-3'>
           <div className='card bg-base-300'>

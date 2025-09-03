@@ -164,10 +164,10 @@ async function ProductPage({
             className='h-full w-full object-contain'
           />
         </div>
-        <div>
+        <div className='text-white'>
           <ul className='space-y-4'>
             <li>
-              <h1 className='text-xl'>{product.name}</h1>
+              <h1 className='text-xl '>{product.name}</h1>
             </li>
             <li>
               <Rating
