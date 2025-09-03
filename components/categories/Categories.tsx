@@ -41,19 +41,19 @@ const Categories = () => {
         <Overlay category='海賊王' />
       </Link>
       <Link
-        href='/search?category=火影'
+        href='/search?category=曼威'
         className='group relative col-span-2 overflow-hidden'
       >
         <Image
           src={Hero}
-          alt='火影系列'
+          alt='曼威系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='火影' />
+        <Overlay category='v' />
       </Link>
     </div>
   );
