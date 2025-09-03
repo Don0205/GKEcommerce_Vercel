@@ -1,4 +1,4 @@
-// lib\hooks\useCartStore.ts
+// lib\hooks\useCartStore.tsa
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
