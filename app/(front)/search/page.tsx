@@ -184,12 +184,12 @@ export default async function SearchPage({
   return (
     <div className='grid md:grid-cols-5 md:gap-5'>
       <div>
-        <div className='py-2 text-xl'>類別</div>
+        <div className='py-2 text-xl link-primary'>類別</div>
         <div>
           <ul>
             <li>
               <Link
-                className={`link-hover link ${'all' === category && 'link-primary'}`}
+                className={`link-hover link text-white ${'all' === category && ''}`}
                 href={getFilterUrl({ c: 'all' })}
               >
                 任何
@@ -198,7 +198,7 @@ export default async function SearchPage({
             {categories.map((c: string) => (
               <li key={c}>
                 <Link
-                  className={`link-hover link ${c === category && 'link-primary'}`}
+                  className={`link-hover link text-white ${c === category && 'link-primary'}`}
                   href={getFilterUrl({ c })}
                 >
                   {c}
@@ -208,11 +208,11 @@ export default async function SearchPage({
           </ul>
         </div>
         <div>
-          <div className='py-2 text-xl'>價格</div>
+          <div className='py-2 text-xl link-primary'>價格</div>
           <ul>
             <li>
               <Link
-                className={`link-hover link ${'all' === price && 'link-primary'}`}
+                className={`link-hover link text-white ${'all' === price && ''}`}
                 href={getFilterUrl({ p: 'all' })}
               >
                 任何
@@ -222,7 +222,7 @@ export default async function SearchPage({
               <li key={p.value}>
                 <Link
                   href={getFilterUrl({ p: p.value })}
-                  className={`link-hover link ${p.value === price && 'link-primary'}`}
+                  className={`link-hover link text-white ${p.value === price && 'link-primary'}`}
                 >
                   {p.name}
                 </Link>
@@ -231,12 +231,12 @@ export default async function SearchPage({
           </ul>
         </div>
         <div>
-          <div className='py-2 text-xl'>顧客評價</div>
+          <div className='py-2 text-xl link-primary'>顧客評價</div>
           <ul className='flex flex-col gap-1'>
             <li>
               <Link
                 href={getFilterUrl({ r: 'all' })}
-                className={`link-hover link ${'all' === rating && 'link-primary'}`}
+                className={`link-hover link text-white ${'all' === rating && 'link-primary'}`}
               >
                 任何
               </Link>
@@ -245,7 +245,7 @@ export default async function SearchPage({
               <li key={r}>
                 <Link
                   href={getFilterUrl({ r: `${r}` })}
-                  className={`link-hover link ${`${r}` === rating && 'link-primary'}`}
+                  className={`link-hover link text-white ${`${r}` === rating && 'link-primary'}`}
                 >
                   <Rating caption={' 以上'} value={r} />
                 </Link>
@@ -256,7 +256,7 @@ export default async function SearchPage({
       </div>
       <div className='md:col-span-4'>
         <div className='flex flex-col justify-between py-4 md:flex-row'>
-          <div className='flex items-center'>
+          <div className='flex items-center text-white'>
             {products.length === 0 ? '沒有' : countProducts} 個結果
             {q !== 'all' && q !== '' && ' : ' + q}
             {category !== 'all' && ' : ' + category}
@@ -272,7 +272,7 @@ export default async function SearchPage({
               </Link>
             ) : null}
           </div>
-          <div>
+          <div className='text-white'>
             排序方式：{' '}
             {sortOrders.map((s) => (
               <Link

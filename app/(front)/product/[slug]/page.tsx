@@ -1,10 +1,12 @@
+// app/product/[slug]/page.tsx
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPlaiceholder } from 'plaiceholder';
 
-import AddBlindBoxToCart from '@/components/products/AddBlindBoxToCart'; // 新增
+import AddBlindBoxToCart from '@/components/products/AddBlindBoxToCart';
 import AddToCart from '@/components/products/AddToCart';
+import ProductImages from '@/components/products/ProductImages';
 import { Rating } from '@/components/products/Rating';
 import RecommendedProducts from '@/components/products/RecommendedProducts';
 import prisma from '@/lib/dbConnect';
@@ -100,33 +102,38 @@ async function ProductPage({
   }
 
   const images = product.images || [];
-  const imageUrl = images[0] || '/images/placeholder.jpg';
 
-  let base64 = '';
-  if (imageUrl.startsWith('https')) {
-    try {
-      const res = await fetch(imageUrl);
-      if (!res.ok) {
-        throw new Error(`獲取圖片失敗: ${res.status} ${res.statusText}`);
+  // 處理所有圖片的 base64
+  const imagesWithBase64 = await Promise.all(
+    images.map(async (imageUrl) => {
+      let base64 = '';
+      if (imageUrl.startsWith('https')) {
+        try {
+          const res = await fetch(imageUrl);
+          if (!res.ok) {
+            throw new Error(`獲取圖片失敗: ${res.status} ${res.statusText}`);
+          }
+          const contentType = res.headers.get('content-type');
+          if (!contentType?.startsWith('image/')) {
+            throw new Error('回應不是圖片');
+          }
+          const buffer = Buffer.from(await res.arrayBuffer());
+          if (buffer.length === 0) {
+            throw new Error('圖片緩衝區為空');
+          }
+          const result = await getPlaiceholder(buffer);
+          base64 = result.base64;
+        } catch (error) {
+          console.error('處理圖片時出錯:', error);
+          base64 = '';
+        }
+      } else {
+        base64 =
+          'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
       }
-      const contentType = res.headers.get('content-type');
-      if (!contentType?.startsWith('image/')) {
-        throw new Error('回應不是圖片');
-      }
-      const buffer = Buffer.from(await res.arrayBuffer());
-      if (buffer.length === 0) {
-        throw new Error('圖片緩衝區為空');
-      }
-      const result = await getPlaiceholder(buffer);
-      base64 = result.base64;
-    } catch (error) {
-      console.error('處理圖片時出錯:', error);
-      base64 = '';
-    }
-  } else {
-    base64 =
-      'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
-  }
+      return { url: imageUrl, base64 };
+    })
+  );
 
   // 獲取推薦商品
   const recommendedProducts = await productService.getRecommended(
@@ -152,17 +159,8 @@ async function ProductPage({
         <Link href='/' className='btn'>{`<- 返回商品列表`}</Link>
       </div>
       <div className='grid gap-4 md:grid-cols-4'>
-        <div className='relative aspect-square md:col-span-2'>
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            placeholder={base64 ? 'blur' : 'empty'}
-            blurDataURL={base64}
-            width={640}
-            height={640}
-            sizes='100vw'
-            className='h-full w-full object-contain'
-          />
+        <div className='md:col-span-2'>
+          <ProductImages images={imagesWithBase64} />
         </div>
         <div className='text-white'>
           <ul className='space-y-4'>

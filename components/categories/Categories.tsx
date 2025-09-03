@@ -26,34 +26,34 @@ const Categories = () => {
         <Overlay category='盲盒' />
       </Link>
       <Link
-        href='/search?category=海賊王'
+        href='/search?category=動漫'
         className='group relative col-span-2 overflow-hidden'
       >
         <Image
           src={Figures}
-          alt='海賊王系列'
+          alt='動漫系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='海賊王' />
+        <Overlay category='動漫' />
       </Link>
       <Link
-        href='/search?category=曼威'
+        href='/search?category=其他'
         className='group relative col-span-2 overflow-hidden'
       >
         <Image
           src={Hero}
-          alt='曼威系列'
+          alt='其他系列'
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='曼威' />
+        <Overlay category='其他' />
       </Link>
     </div>
   );
