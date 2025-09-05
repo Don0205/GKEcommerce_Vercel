@@ -175,7 +175,7 @@ export default async function SearchPage({
             </div>
           </div>
         ) : (
-          <p className='mt-4'>請輸入您想要的價格來獲得自己的盲盒</p>
+          <p className='mt-4 text-white'>請輸入您想要的價格來獲得自己的盲盒</p>
         )}
       </div>
     );

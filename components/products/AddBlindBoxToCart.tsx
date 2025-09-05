@@ -1,10 +1,12 @@
 'use client';
 
-import useCartService, {calcPrice,cartStore} from '@/lib/hooks/useCartStore';
+import { useRouter } from 'next/navigation';
+import useCartService, { calcPrice, cartStore } from '@/lib/hooks/useCartStore';
 import { OrderItem } from '@/lib/models/OrderModel';
 
 const AddBlindBoxToCart = ({ selectedProducts }: { selectedProducts: OrderItem[] }) => {
   const { items, increase } = useCartService(); // 取 items 用於檢查
+  const router = useRouter(); // 新增這行來使用 router
 
   const addToCartHandler = () => {
     let updatedCartItems = [...items];
@@ -29,6 +31,9 @@ const AddBlindBoxToCart = ({ selectedProducts }: { selectedProducts: OrderItem[]
       taxPrice,
       totalPrice,
     });
+
+    // 添加商品到購物車後，立即跳轉到購物車頁面
+    router.push('/cart');
   };
 
   return (

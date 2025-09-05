@@ -36,7 +36,7 @@ export const BlindBoxSearch = () => {
         
         <input
           className='input join-item input-bordered w-40 sm:w-44'
-          placeholder='搜尋'
+          placeholder='金額'
           aria-label='搜尋'
           defaultValue={q}
           name='q'

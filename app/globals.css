@@ -10,6 +10,25 @@
   background-position: center;
 }
 
+.PhoneInputCountry {
+  align-items: center;
+  display: flex;
+  height: 100%;
+}
+
+.PhoneInputCountrySelect {
+  height: 100%;
+  border: 1px solid #ccc;
+  border-right: none;
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+}
+
+.PhoneInputInput {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -20,7 +20,7 @@ const CartDetails = () => {
   if (!mounted) return <>載入中...</>;
 
   return (
-    <div>
+    <div className='pb-20'>
       <h1 className='py-4 text-2xl text-white'>購物車</h1>
       {items.length === 0 ? (
         <div>
