@@ -34,7 +34,7 @@ export default function IntellectualProperty() {
         <h2 className="text-2xl font-semibold mb-4">2. 商標</h2>
         <p className="mb-4">2.1 GK天堂商標：</p>
         <ul className="list-disc pl-8 mb-4">
-          <li>"GK天堂"及相關標誌是 GK天堂 的註冊商標。</li>
+          <li>&quot;GK天堂&quot;及相關標誌是 GK天堂 的註冊商標。</li>
           <li>未經 GK天堂 明確書面許可，不得使用這些商標。</li>
         </ul>
         <p className="mb-4">2.2 第三方商標：</p>

@@ -18,7 +18,7 @@ export default function TermsOfService() {
 
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">1. 接受條款</h2>
-        <p className="mb-4">通過訪問或使用GK天堂網站(以下簡稱"網站"),您同意受這些使用條款(以下簡稱"條款")的約束。如果您不同意這些條款的任何部分,則您可能無法使用我們的服務。</p>
+        <p className="mb-4">通過訪問或使用GK天堂網站(以下簡稱&quot;網站&quot;),您同意受這些使用條款(以下簡稱&quot;條款&quot;)的約束。如果您不同意這些條款的任何部分,則您可能無法使用我們的服務。</p>
       </section>
 
       <section className="mb-8">
@@ -51,7 +51,7 @@ export default function TermsOfService() {
 
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">6. 免責聲明</h2>
-        <p className="mb-4">6.1 GK天堂的服務按"原樣"和"可用"的基礎提供,不提供任何明示或暗示的保證。</p>
+        <p className="mb-4">6.1 GK天堂的服務按&quot;原樣&quot;和&quot;可用&quot;的基礎提供,不提供任何明示或暗示的保證。</p>
         <p className="mb-4">6.2 我們不保證網站將始終可用、無錯誤或安全。</p>
         <p className="mb-4">6.3 您使用本網站的風險完全由您自己承擔。</p>
       </section>

@@ -42,7 +42,7 @@ export default function ReturnRefundPolicy() {
         <ul className="list-disc pl-8 mb-4">
           <li>登錄您的GK天堂帳戶。</li>
           <li>找到您要退回的訂單。</li>
-          <li>選擇"申請退貨"選項。</li>
+          <li>選擇&quot;申請退貨&quot;選項。</li>
           <li>填寫退貨原因和其他必要信息。</li>
         </ul>
         <p className="mb-4">2.2 退貨授權：</p>
