@@ -1,4 +1,3 @@
-// app/(front)/place-order/Form.tsx
 'use client';
 
 import Image from 'next/image';
@@ -19,11 +18,25 @@ const Form = () => {
     shippingAddress,
     items,
     itemsPrice,
-    taxPrice,
     shippingPrice,
-    totalPrice,
     clear,
   } = useCartService();
+
+  const [taxPrice, setTaxPrice] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  // 使用 SWR 從 API 獲取稅率，基於 shippingAddress.country
+  const { data: taxData } = useSWR(shippingAddress.country ? `/api/tax?country=${shippingAddress.country}` : null);
+
+  useEffect(() => {
+    if (taxData) {
+      const taxRate = taxData.textNum || 0; // 直接使用數字
+      // const newTaxPrice = itemsPrice * taxRate;
+      const newTaxPrice = itemsPrice * taxRate;
+      setTaxPrice(newTaxPrice);
+      setTotalPrice(itemsPrice + newTaxPrice + shippingPrice);
+    }
+  }, [taxData, itemsPrice, shippingPrice]);
 
   const { trigger: placeOrder, isMutating: isPlacing } = useSWRMutation(
     `/api/orders/mine`,
@@ -42,9 +55,9 @@ const Form = () => {
           phone: shippingAddress.phone,
           items,
           itemsPrice,
-          taxPrice,
+          taxPrice, // 使用新計算的 taxPrice
           shippingPrice,
-          totalPrice,
+          totalPrice, // 使用新計算的 totalPrice
         }),
       });
       const data = await res.json();
@@ -179,7 +192,7 @@ const Form = () => {
                 <li>
                   <div className=' flex justify-between'>
                     <div>稅金</div>
-                    <div>${taxPrice}</div>
+                    <div>${taxPrice.toFixed(2)}</div> {/* 使用新計算的 taxPrice */}
                   </div>
                 </li>
                 <li>
@@ -191,7 +204,7 @@ const Form = () => {
                 <li>
                   <div className=' flex justify-between'>
                     <div>總計</div>
-                    <div>${totalPrice}</div>
+                    <div>${totalPrice.toFixed(2)}</div> {/* 使用新計算的 totalPrice */}
                   </div>
                 </li>
 

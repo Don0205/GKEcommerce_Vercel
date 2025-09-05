@@ -67,6 +67,14 @@ const AdminLayout = async ({
                 付款方式
               </Link>
             </li>
+            <li>
+              <Link
+                className={'tax-edit' === activeItem ? 'active' : ''}
+                href='/admin/tax-edit'
+              >
+                Tax editer
+              </Link>
+            </li>
           </ul>
         </div>
         <div className='px-4 md:col-span-4'>{children}</div>

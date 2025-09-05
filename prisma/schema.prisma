@@ -92,3 +92,9 @@ model Bank {
   BranchNum String
   AccountName String
 }
+
+model Tex {
+  id String @id @default(cuid())
+  Country String
+  TextNum Float
+}
