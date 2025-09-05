@@ -1,4 +1,4 @@
-//components\ClientProvider.tsx
+//components\ClientProvider.tsx A
 'use client';
 
 import { usePathname } from 'next/navigation';
