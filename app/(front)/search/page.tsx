@@ -182,7 +182,7 @@ export default async function SearchPage({
   }
 
   return (
-    <div className='grid md:grid-cols-5 md:gap-5'>
+    <div className='grid md:grid-cols-5 md:gap-5 pb-20'>
       <div>
         <div className='py-2 text-xl link-primary'>類別</div>
         <div>
