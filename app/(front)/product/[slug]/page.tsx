@@ -67,15 +67,43 @@ async function ProductPage({
       return notFound();
     }
 
-    const allProductsData = await prisma.product.findMany({
-      select: { price: true },
-      where: { countInStock: { gte: 1 } },
-    });
-    const prices = allProductsData.map((p) => p.price);
-    const selectedPrices = knapsackClosestSum(prices, inputPrice);
-    selectedProducts = await prisma.product.findMany({
-      where: { price: { in: selectedPrices }, countInStock: { gte: 1 } },
+    // 查找一元禮包 (filler product)
+    const filler = await prisma.product.findFirst({
+      where: {
+        price: 1,
+        countInStock: { gte: 1 },
+      },
+    }) as Product | null;
+
+    // 獲取所有其他產品 (排除 filler)
+    const allProducts = await prisma.product.findMany({
+      where: {
+        countInStock: { gte: 1 },
+        id: { not: filler?.id },
+      },
     }) as Product[];
+
+    const prices = allProducts.map((p) => p.price);
+
+    // 使用 knapsack 找到最接近的總和 (排除 filler)
+    const selectedIndices = knapsackClosestSum(prices, inputPrice);
+    selectedProducts = selectedIndices.map((idx) => allProducts[idx]);
+
+    let actualSum = selectedProducts.reduce((sum, p) => sum + p.price, 0);
+    let diff = inputPrice - actualSum;
+
+    // 如果有差額且有 filler，添加多個 filler 來湊數
+    if (filler && diff > 0) {
+      const fillerPrice = filler.price;
+      const maxFillers = Math.floor(diff / fillerPrice);
+      const numFillers = Math.min(maxFillers, filler.countInStock);
+
+      for (let k = 0; k < numFillers; k++) {
+        selectedProducts.push(filler);
+      }
+
+      actualSum += numFillers * fillerPrice;
+    }
 
     product = {
       id: 'blind-box-id',
@@ -83,7 +111,7 @@ async function ProductPage({
       slug: 'blind-box',
       category: 'blindBox',
       images: ['/images/categories/blidBox.jpg'],
-      price: inputPrice,
+      price: actualSum, // 使用實際總和作為價格
       brand: '盲盒品牌',
       rating: 0,
       numReviews: 0,
@@ -141,17 +169,26 @@ async function ProductPage({
     product.id,
   );
 
-  // 轉換 selectedProducts 為 OrderItem[] 格式
-  const selectedOrderItems: OrderItem[] = selectedProducts.map((p) => ({
-    id: p.id,
-    orderId: '',
-    productId: p.id,
-    name: p.name,
-    qty: 0,
-    images: p.images,
-    price: p.price,
-    slug: p.slug,
-  }));
+  // 轉換 selectedProducts 為 OrderItem[] 格式，並合併相同產品的 qty
+  const productMap = new Map<string, number>();
+  for (const p of selectedProducts) {
+    productMap.set(p.id, (productMap.get(p.id) || 0) + 1);
+  }
+
+  const selectedOrderItems: OrderItem[] = [];
+  productMap.forEach((qty, productId) => {
+    const p = selectedProducts.find((prod) => prod.id === productId)!;
+    selectedOrderItems.push({
+      id: '',
+      orderId: '',
+      productId,
+      name: p.name,
+      qty,
+      images: p.images,
+      price: p.price,
+      slug: p.slug,
+    });
+  });
 
   return (
     <div className='my-2'>
@@ -221,35 +258,44 @@ async function ProductPage({
 }
 
 function knapsackClosestSum(prices: number[], target: number): number[] {
+  const SCALE = 100;
+  const intTarget = Math.floor(target * SCALE);
+  const intPrices = prices.map((p) => Math.floor(p * SCALE));
+
   const n = prices.length;
-  const dp = Array.from({ length: n + 1 }, () => Array(target + 1).fill(false));
+  const dp = Array.from({ length: n + 1 }, () => Array(intTarget + 1).fill(false));
   dp[0][0] = true;
+
   for (let i = 1; i <= n; i++) {
-    for (let j = 0; j <= target; j++) {
+    for (let j = 0; j <= intTarget; j++) {
       dp[i][j] = dp[i - 1][j];
-      if (j >= prices[i - 1]) {
-        dp[i][j] = dp[i][j] || dp[i - 1][j - prices[i - 1]];
+      if (j >= intPrices[i - 1]) {
+        dp[i][j] = dp[i][j] || dp[i - 1][j - intPrices[i - 1]];
       }
     }
   }
-  let maxSum = 0;
-  for (let j = target; j >= 0; j--) {
+
+  let intMaxSum = 0;
+  for (let j = intTarget; j >= 0; j--) {
     if (dp[n][j]) {
-      maxSum = j;
+      intMaxSum = j;
       break;
     }
   }
-  // 重建選取
-  const selection = [];
-  let i = n, j = maxSum;
+
+  // 重建選取的索引
+  const selectedIndices: number[] = [];
+  let i = n;
+  let j = intMaxSum;
   while (i > 0 && j > 0) {
     if (dp[i][j] && !dp[i - 1][j]) {
-      selection.push(prices[i - 1]);
-      j -= prices[i - 1];
+      selectedIndices.push(i - 1);
+      j -= intPrices[i - 1];
     }
     i--;
   }
-  return selection;
+
+  return selectedIndices;
 }
 
 export default ProductPage;

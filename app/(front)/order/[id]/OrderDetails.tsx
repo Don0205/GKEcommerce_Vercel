@@ -4,7 +4,9 @@
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
@@ -18,6 +20,8 @@ interface IOrderDetails {
 
 const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
   const { data: session } = useSession();
+  const router = useRouter();
+  const [newId, setNewId] = useState('');
 
   const { trigger: deliverOrder, isMutating: isDelivering } = useSWRMutation(
     `/api/orders/${orderId}`,
@@ -32,6 +36,26 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
       res.ok
         ? toast.success('訂單已成功送達')
         : toast.error(data.message);
+    },
+  );
+
+  const { trigger: editOrderId } = useSWRMutation(
+    `/api/orders/${orderId}`,
+    async (url, { arg: newId }: { arg: string }) => {
+      const res = await fetch(`/api/admin/orders/${orderId}/editID`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success('訂單 ID 已更新');
+        router.push(`/order/${newId}`);
+        return data;
+      } else {
+        const error = await res.json();
+        toast.error(error.message);
+      }
     },
   );
 
@@ -197,18 +221,35 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
                   </li>
                 )}
                 {session?.user.isAdmin && (
-                  <li>
-                    <button
-                      className='btn my-2 w-full'
-                      onClick={() => deliverOrder()}
-                      disabled={isDelivering}
-                    >
-                      {isDelivering && (
-                        <span className='loading loading-spinner'></span>
-                      )}
-                      標記為已送達
-                    </button>
-                  </li>
+                  <>
+                    <li>
+                      <button
+                        className='btn my-2 w-full'
+                        onClick={() => deliverOrder()}
+                        disabled={isDelivering}
+                      >
+                        {isDelivering && (
+                          <span className='loading loading-spinner'></span>
+                        )}
+                        標記為已送達
+                      </button>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="新訂單 ID"
+                        value={newId}
+                        onChange={(e) => setNewId(e.target.value)}
+                        className="input input-bordered w-full"
+                      />
+                      <button
+                        className='btn btn-primary'
+                        onClick={() => editOrderId(newId)}
+                      >
+                        更新 ID
+                      </button>
+                    </li>
+                  </>
                 )}
               </ul>
             </div>
