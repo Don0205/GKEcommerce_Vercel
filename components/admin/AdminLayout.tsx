@@ -72,7 +72,7 @@ const AdminLayout = async ({
                 className={'tax-edit' === activeItem ? 'active' : ''}
                 href='/admin/tax-edit'
               >
-                Tax editer
+                稅金設定
               </Link>
             </li>
           </ul>
