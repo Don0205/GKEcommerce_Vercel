@@ -1,42 +1,21 @@
-import Image from 'next/image';
+// components/carousel/InfoCarousel.tsx
+import Slider from '@/components/slider/InfoSlider';
+import { delay } from '@/lib/utils';
 
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
-
-const InfoCarousel = () => {
-  const images = [
-    '/images/info1.jpg',
-    '/images/info2.jpg',
-    '/images/info3.jpg',
+const getImages = async () => {
+  await delay(2000); // 模擬加載延遲
+  return [
+    { slug: 'info1', src: '/images/info1.jpg' },
+    { slug: 'info2', src: '/images/info2.jpg' },
+    { slug: 'info3', src: '/images/info3.jpg' },
+    { slug: 'info4', src: '/images/image_2025-09-06_11-41-26.png' },
+    { slug: 'info5', src: '/images/image_2025-09-06_11-41-27.png' },
   ];
+};
 
-  return (
-    <div>
-      <h2 className='my-2 text-2xl md:my-4 text-white'>注意事項</h2>
-      <Carousel opts={{ loop: true }} className="w-full">
-        <CarouselContent>
-          {images.map((src, index) => (
-            <CarouselItem key={index} className="relative w-full pt-[56.25%]">
-              <Image
-                src={src}
-                alt={`注意事項 ${index + 1}`}
-                layout='fill'
-                objectFit='contain'
-                className="absolute inset-0"
-              />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className='absolute left-4 top-1/2 z-10' />
-        <CarouselNext className='absolute right-4 top-1/2 z-10' />
-      </Carousel>
-    </div>
-  );
+const InfoCarousel = async () => {
+  await delay(2000); // 模擬加載延遲
+  return <Slider title="注意事項" getProducts={getImages} />;
 };
 
 export default InfoCarousel;

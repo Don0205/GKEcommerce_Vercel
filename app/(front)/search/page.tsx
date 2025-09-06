@@ -40,7 +40,12 @@ export async function generateMetadata({
   }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const { q = 'all', category = 'all', price = 'all', rating = 'all' } = resolvedSearchParams;
+  const {
+    q = 'all',
+    category = 'all',
+    price = 'all',
+    rating = 'all',
+  } = resolvedSearchParams;
 
   if (
     (q !== 'all' && q !== '') ||
@@ -175,16 +180,21 @@ export default async function SearchPage({
             </div>
           </div>
         ) : (
-          <p className='mt-4 text-white'>請輸入您想要的價格來獲得自己的盲盒</p>
+          <div className='mt-4 inline-block space-y-4 text-left text-white'>
+            <p>請輸入您的期望金額，即可獲得專屬的神秘禮盒。</p>
+            <p>神秘禮盒將隨機包含與您輸入金額相符的商品。</p>
+            <p>商品將直接添加到您的購物車，您可以前往結帳。</p>
+            <p>付款成功後，您的訂單將被確認。</p>
+          </div>
         )}
       </div>
     );
   }
 
   return (
-    <div className='grid md:grid-cols-5 md:gap-5 pb-20'>
+    <div className='grid pb-20 md:grid-cols-5 md:gap-5'>
       <div>
-        <div className='py-2 text-xl link-primary'>類別</div>
+        <div className='link-primary py-2 text-xl'>類別</div>
         <div>
           <ul>
             <li>
@@ -208,7 +218,7 @@ export default async function SearchPage({
           </ul>
         </div>
         <div>
-          <div className='py-2 text-xl link-primary'>價格</div>
+          <div className='link-primary py-2 text-xl'>價格</div>
           <ul>
             <li>
               <Link
@@ -231,7 +241,7 @@ export default async function SearchPage({
           </ul>
         </div>
         <div>
-          <div className='py-2 text-xl link-primary'>顧客評價</div>
+          <div className='link-primary py-2 text-xl'>顧客評價</div>
           <ul className='flex flex-col gap-1'>
             <li>
               <Link

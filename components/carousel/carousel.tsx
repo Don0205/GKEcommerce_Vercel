@@ -1,4 +1,4 @@
-// components\carousel\carousel.tsx
+// components/carousel/carousel.tsx
 import Link from 'next/link';
 
 import {
@@ -20,11 +20,11 @@ const Carousel = async () => {
     <SCarousel opts={{ loop: true }} className="w-full">
       <CarouselContent>
         {videos.map((videoSrc, index) => (
-          <CarouselItem key={index} className="relative w-full pt-[56.25%]"> {/* 16:9 aspect ratio */}
+          <CarouselItem key={index} className="relative w-full pt-[100%] sm:pt-[56.25%]"> {/* Square aspect ratio on mobile, 16:9 on larger screens */}
             <Link href='/' className="absolute inset-0">
               <video
                 src={videoSrc}
-                className='absolute inset-0 h-full w-full object-contain'
+                className='absolute inset-0 h-full w-full object-cover sm:object-contain'
                 autoPlay
                 loop
                 muted
@@ -43,5 +43,5 @@ const Carousel = async () => {
 export default Carousel;
 
 export const CarouselSkeleton = () => {
-  return <div className='skeleton h-0 w-full pt-[56.25%] rounded-lg' />; // 16:9 aspect ratio
+  return <div className='skeleton h-0 w-full pt-[100%] sm:pt-[56.25%] rounded-lg' />; // Square aspect ratio on mobile, 16:9 on larger screens
 };
