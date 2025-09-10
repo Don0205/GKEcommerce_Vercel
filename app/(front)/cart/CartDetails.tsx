@@ -1,4 +1,4 @@
-// app/(front)/cart/CartDetails.tsx
+// app/(front)/cart/CartDetails.tsx a
 'use client';
 
 import Image from 'next/image';
