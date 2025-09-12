@@ -120,6 +120,35 @@ export default function ProductEditForm({ productId }: { productId: string }) {
     </div>
   );
 
+  const FormTextarea = ({
+    id,
+    name,
+    required,
+  }: {
+    id: keyof Product;
+    name: string;
+    required?: boolean;
+  }) => (
+    <div className='mb-6 md:flex'>
+      <label className='label md:w-1/5' htmlFor={id}>
+        {name}
+      </label>
+      <div className='md:w-4/5'>
+        <textarea
+          id={id}
+          rows={4}
+          {...register(id, {
+            required: required && `${name}為必填項`,
+          })}
+          className='textarea textarea-bordered w-full max-w-md'
+        />
+        {errors[id]?.message && (
+          <div className='text-error'>{errors[id]?.message}</div>
+        )}
+      </div>
+    </div>
+  );
+
   const uploadHandler = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList) return;
@@ -170,7 +199,7 @@ export default function ProductEditForm({ productId }: { productId: string }) {
           <FormNumberInput name='價格' id='price' required />
           <FormInput name='類別' id='category' required />
           <FormInput name='品牌' id='brand' required />
-          <FormInput name='描述' id='description' required />
+          <FormTextarea name='描述' id='description' required />
           <FormNumberInput name='庫存數量' id='countInStock' required />
 
           <div className='mb-6 md:flex'>
