@@ -37,7 +37,7 @@ const MyOrders = () => {
               <td className='whitespace-nowrap'>
                 {format(new Date(order.createdAt), 'yyyy-MM-dd')}
               </td>
-              <td>${order.totalPrice}</td>
+              <td>€{order.totalPrice}</td>
               <td>
                 {order.isPaid && order.paidAt
                   ? `${format(new Date(order.paidAt), 'yyyy-MM-dd')}`

@@ -12,15 +12,15 @@ import BlidBox from '../../public/images/categories/blidBox.jpg';
 const sortOrders = ['最新', '最低價', '最高價', '評分'];
 const prices = [
   {
-    name: '$1 到 $50',
+    name: '€1 到 €50',
     value: '1-50',
   },
   {
-    name: '$51 到 $200',
+    name: '€51 到 €200',
     value: '51-200',
   },
   {
-    name: '$201 到 $1000',
+    name: '€201 到 €1000',
     value: '201-1000',
   },
 ];

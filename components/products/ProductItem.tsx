@@ -89,7 +89,7 @@ const ProductItem = async ({
         <Rating value={product.rating} caption={`(${product.numReviews})`} isCard />
         <p className='line-clamp-1'>{product.brand}</p>
         <div className='card-actions flex items-center justify-between'>
-          <span className='text-2xl'>${product.price}</span>
+          <span className='text-2xl'>€{product.price}</span>
         </div>
       </div>
     </div>

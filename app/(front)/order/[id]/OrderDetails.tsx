@@ -169,7 +169,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
                         </Link>
                       </td>
                       <td>{item.qty}</td>
-                      <td>${item.price}</td>
+                      <td>€{item.price}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -186,25 +186,25 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
                 <li>
                   <div className='mb-2 flex justify-between'>
                     <div>商品總額</div>
-                    <div>${itemsPrice}</div>
+                    <div>€{itemsPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
                     <div>稅金</div>
-                    <div>${taxPrice}</div>
+                    <div>€{taxPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
                     <div>運費</div>
-                    <div>${shippingPrice}</div>
+                    <div>€{shippingPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
                     <div>總計</div>
-                    <div>${totalPrice}</div>
+                    <div>€{totalPrice}</div>
                   </div>
                 </li>
 

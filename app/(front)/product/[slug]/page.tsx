@@ -224,7 +224,7 @@ async function ProductPage({
             <div className='card-body'>
               <div className='flex justify-between'>
                 <div>價格</div>
-                <div>${product.price}</div>
+                <div>€{product.price}</div>
               </div>
               <div className='mb-2 flex justify-between'>
                 <div>庫存狀態</div>

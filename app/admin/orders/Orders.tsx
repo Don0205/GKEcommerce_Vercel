@@ -35,7 +35,7 @@ export default function Orders() {
                 <td>{formatId(order.id)}</td>
                 <td>{order.user?.name || '已刪除用戶'}</td>
                 <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                <td>${order.totalPrice.toFixed(2)}</td>
+                <td>€{order.totalPrice.toFixed(2)}</td>
                 <td>
                   {order.isPaid && order.paidAt
                     ? new Date(order.paidAt).toLocaleDateString()

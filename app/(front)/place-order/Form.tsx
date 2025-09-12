@@ -164,7 +164,7 @@ const Form = () => {
                       <td>
                         <span>{item.qty}</span>
                       </td>
-                      <td>${item.price}</td>
+                      <td>€{item.price}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -186,25 +186,25 @@ const Form = () => {
                 <li>
                   <div className=' flex justify-between'>
                     <div>商品總額</div>
-                    <div>${itemsPrice}</div>
+                    <div>€{itemsPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
                     <div>稅金</div>
-                    <div>${taxPrice.toFixed(2)}</div> {/* 使用新計算的 taxPrice */}
+                    <div>€{taxPrice.toFixed(2)}</div> {/* 使用新計算的 taxPrice */}
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
                     <div>運費</div>
-                    <div>${shippingPrice}</div>
+                    <div>€{shippingPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
                     <div>總計</div>
-                    <div>${totalPrice.toFixed(2)}</div> {/* 使用新計算的 totalPrice */}
+                    <div>€{totalPrice.toFixed(2)}</div> {/* 使用新計算的 totalPrice */}
                   </div>
                 </li>
 

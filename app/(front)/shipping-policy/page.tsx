@@ -35,9 +35,9 @@ export default function ShippingPolicy() {
         <h2 className="text-2xl font-semibold mb-4">2. 運送費用</h2>
         <p className="mb-4">2.1 國內運送費用：</p>
         <ul className="list-disc pl-8 mb-4">
-          <li>標準運送：訂單金額NT$1,500以上免運費,低於NT$1,500收取NT$150運費。</li>
-          <li>快速運送：基本費用NT$250,訂單金額每增加NT$1,000加收NT$50。</li>
-          <li>超值運送：統一收取NT$100運費。</li>
+          <li>標準運送：訂單金額€1,500以上免運費,低於€1,500收取€150運費。</li>
+          <li>快速運送：基本費用€250,訂單金額每增加€1,000加收€50。</li>
+          <li>超值運送：統一收取€100運費。</li>
         </ul>
         <p className="mb-4">2.2 國際運送費用：</p>
         <ul className="list-disc pl-8 mb-4">
@@ -116,7 +116,7 @@ export default function ShippingPolicy() {
         <h2 className="text-2xl font-semibold mb-4">7. 特殊運送要求</h2>
         <p className="mb-4">7.1 禮品包裝：</p>
         <ul className="list-disc pl-8 mb-4">
-          <li>我們提供禮品包裝服務,費用為每件商品NT$50。</li>
+          <li>我們提供禮品包裝服務,費用為每件商品€50。</li>
           <li>禮品包裝選項可在結賬時選擇。</li>
         </ul>
         <p className="mb-4">7.2 指定送貨日期：</p>

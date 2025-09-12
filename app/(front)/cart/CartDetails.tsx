@@ -76,7 +76,7 @@ const CartDetails = () => {
                         </button>
                       </div>
                     </td>
-                    <td className='text-white'>$ {item.price}</td>
+                    <td className='text-white'>€ {item.price}</td>
                   </tr>
                 ))}
               </tbody>
@@ -87,7 +87,7 @@ const CartDetails = () => {
               <ul>
                 <li className='pb-3 text-xl'>
                   小計: {items.reduce((acc, item) => acc + item.qty, 0)} 件
-                  <br />$ {itemsPrice}
+                  <br />€ {itemsPrice}
                 </li>
                 <li>
                   <button
