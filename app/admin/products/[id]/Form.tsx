@@ -51,6 +51,7 @@ export default function ProductEditForm({ productId }: { productId: string }) {
     setValue('brand', product.brand);
     setValue('countInStock', product.countInStock);
     setValue('description', product.description);
+    setValue('formet', product.formet);
     setImages(product.images || []);
   }, [product, setValue]);
 
@@ -200,6 +201,7 @@ export default function ProductEditForm({ productId }: { productId: string }) {
           <FormInput name='類別' id='category' required />
           <FormInput name='品牌' id='brand' required />
           <FormTextarea name='描述' id='description' required />
+          <FormInput name='規格' id='formet' required />
           <FormNumberInput name='庫存數量' id='countInStock' required />
 
           <div className='mb-6 md:flex'>

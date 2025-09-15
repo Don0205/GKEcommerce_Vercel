@@ -38,6 +38,7 @@ export const PUT = auth(async (...args: any) => {
     brand,
     countInStock,
     description,
+    formet,
   } = await req.json();
 
   // 如果有 images，設定 banner 為第一張圖片
@@ -56,6 +57,7 @@ export const PUT = auth(async (...args: any) => {
         brand,
         countInStock,
         description,
+        formet,
       },
     });
     return Response.json(product);

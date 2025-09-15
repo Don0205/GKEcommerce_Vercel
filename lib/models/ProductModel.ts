@@ -16,6 +16,7 @@ export type Product = {
   countInStock: number;
   colors?: [];
   sizes?: [];
+  formet?: string;
 };
 
 const productSchema = new mongoose.Schema(

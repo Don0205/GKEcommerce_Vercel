@@ -39,6 +39,7 @@ model Product {
   updatedAt DateTime @updatedAt
   orderItems OrderItem[]
   isVirtual Boolean @default(false) // 新增，用於標記盲盒
+  formet String?
 }
 
 model Order {
