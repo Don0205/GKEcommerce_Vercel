@@ -1,53 +1,36 @@
+'use client';
+
 import React from 'react';
+import { useTranslation } from '@/lib/useTranslation';
 
 const Text = () => {
+  const { t } = useTranslation();
+
   return (
     <div className='text-white'>
       <h1 className='mb-4 text-3xl font-bold'>
-        GK天堂：車庫套件愛好者的首選目的地
+        {t('gkHeavenTitle')}
       </h1>
       <h2 className='mb-2 text-2xl font-semibold'>
-        您的高品質車庫套件和模型人偶終極來源
+        {t('gkHeavenSubtitle')}
       </h2>
-      <p className='mb-4'>
-        在GK天堂，我們相信每個車庫套件都訴說著獨特的故事。探索我們豐富的精心製作的模型套件選擇，包括流行的動漫角色、電影偶像和原創作品，所有這些都旨在將您喜愛的虛構世界帶入現實。無論您是經驗豐富的模型製作者，還是剛開始進入GK的迷人世界，我們廣泛的收藏都能滿足各種技能水平和興趣。
-      </p>
-      <p className='mb-4'>
-        我們對品質和真實性的承諾確保了我們收藏中的每一套件不僅提供精細的細節，還能捕捉它們所代表角色的精髓。從我們樹脂套件的精細紋理到每個人偶的精確雕刻，每件商品都經過精心挑選，為您提供GK工藝中的最佳選擇。我們用戶友好的在線商店使瀏覽和購買變得輕而易舉，只需點擊幾下，就能將您選擇的套件送到您的家門口。
-      </p>
-      <p className='mb-4'>
-        深入探索我們多樣化的車庫套件系列，找到您的下一件傑作。無論是我們動作人偶套件的動態姿勢、雕像收藏的寧靜美感，還是場景套裝的精緻細節，GK天堂應有盡有。每件產品都配有詳細描述、高解析度圖片，通常還包括繪畫指南，讓您全面了解套件及其潛力。
-      </p>
-      <p className='mb-4'>
-        通過我們不斷更新的新品到貨，走在GK潮流的前沿，保持您的收藏新鮮有趣。訂閱我們的電子報，接收最新發布、限量版和專為GK愛好者量身定制的獨家預訂信息。在GK天堂，激情與工藝相遇，為您提供無與倫比的車庫套件在線購物體驗。
-      </p>
+      <p className='mb-4'>{t('gkHeavenIntro')}</p>
+      <p className='mb-4'>{t('gkHeavenQuality')}</p>
+      <p className='mb-4'>{t('gkHeavenExplore')}</p>
+      <p className='mb-4'>{t('gkHeavenNewArrivals')}</p>
       <h2 className='mb-2 text-2xl font-semibold'>
-        為什麼選擇GK天堂？
+        {t('whyChooseGKHeaven')}
       </h2>
-      <p className='mb-4'>
-        在GK天堂，品質與創意相遇。我們致力於採購正宗和高品質的車庫套件，這使我們與眾不同，使每次購買都成為您收藏的寶貴補充。我們直接與知名雕塑家和授權製造商合作，確保每套件都符合最高的細節和準確性標準。
-      </p>
-      <p className='mb-4'>
-        我們還以提供卓越的客戶服務而自豪。我們知識豐富的支持團隊由同為GK愛好者組成，他們總是熱衷於協助您解決有關套件選擇、組裝技巧或繪畫技巧的任何問題，確保從購買到項目完成的無縫體驗。
-      </p>
-      <p className='mb-4'>
-        此外，我們的忠誠度計劃會獎勵您的每次購買，將每花費的一元轉化為可以兌換未來訂單折扣的積分。加入我們的GK收藏家社區，獲得獨家參與工作坊、繪畫教程和即將發布的新品預覽的機會。
-      </p>
-      <p className='mb-4'>
-        今天就沉浸在GK天堂的世界中。探索我們精心挑選的系列，每個套件都訴說著藝術和激情的故事。用您喜愛製作和展示的作品豐富您的收藏，體驗品質、細節和創意的完美融合。立即在GK天堂購物，看看等待您的建模奇蹟。
-      </p>
+      <p className='mb-4'>{t('gkHeavenUnique')}</p>
+      <p className='mb-4'>{t('gkHeavenCustomerService')}</p>
+      <p className='mb-4'>{t('gkHeavenLoyaltyProgram')}</p>
+      <p className='mb-4'>{t('gkHeavenExperience')}</p>
       <h2 className='mb-2 text-2xl font-semibold'>
-        探索GK天堂獨家提供的GK模型
+        {t('gkHeavenExclusiveModels')}
       </h2>
-      <p className='mb-4'>
-        發掘您在其他地方找不到的獨特車庫套件寶藏。我們的獨家收藏包括由知名雕塑家和藝術家設計的限量版模型，每件作品都是體現創意和獨特性的傑作。從原創角色設計到稀有的授權人偶，我們的選擇滿足最挑剔的收藏家需求。
-      </p>
-      <p className='mb-4'>
-        我們專注於獨家產品，確保我們的客戶能夠享受到將他們的愛好提升到新高度的獨特收藏體驗。通過不斷與才華橫溢的藝術家合作並獲得特殊的授權協議，我們帶來了處於GK世界前沿的新穎、動態的套件。探索這些獨特的模型，為您的收藏增添真正與眾不同的獨特性。
-      </p>
-      <p className='mb-4'>
-        今天就加入GK天堂大家庭，進入獨家車庫套件的世界。讓我們成為您發現新模型的嚮導，這些模型將激發並挑戰您進一步提升建模和繪畫技能。無論您正在尋找下一個雄心勃勃的項目，還是為您的收藏加冕的特殊作品，都可以在GK天堂找到。
-      </p>
+      <p className='mb-4'>{t('gkHeavenExclusiveIntro')}</p>
+      <p className='mb-4'>{t('gkHeavenExclusiveFocus')}</p>
+      <p className='mb-4'>{t('gkHeavenJoinUs')}</p>
     </div>
   );
 };

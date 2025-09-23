@@ -12,6 +12,7 @@ import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 
 import { OrderHistoryItem } from '@/lib/models/OrderModel';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface IOrderDetails {
   orderId: string;
@@ -22,6 +23,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
   const { data: session } = useSession();
   const router = useRouter();
   const [newId, setNewId] = useState('');
+  const { t } = useTranslation();
 
   const { trigger: deliverOrder, isMutating: isDelivering } = useSWRMutation(
     `/api/orders/${orderId}`,
@@ -34,7 +36,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
       });
       const data = await res.json();
       res.ok
-        ? toast.success('訂單已成功送達')
+        ? toast.success(t('orderDeliveredSuccess'))
         : toast.error(data.message);
     },
   );
@@ -49,7 +51,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
       });
       if (res.ok) {
         const data = await res.json();
-        toast.success('訂單 ID 已更新');
+        toast.success(t('orderIdUpdated'));
         router.push(`/order/${newId}`);
         return data;
       } else {
@@ -80,14 +82,14 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
     })
       .then((response) => response.json())
       .then((orderData) => {
-        toast.success('訂單已成功付款');
+        toast.success(t('orderPaidSuccess'));
       });
   }
 
   const { data, error } = useSWR(`/api/orders/${orderId}`);
 
   if (error) return error.message;
-  if (!data) return '載入中...';
+  if (!data) return t('loading');
 
   const {
     paymentMethod,
@@ -109,46 +111,46 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
 
   return (
     <div>
-      <h1 className='py-4 text-2xl text-white'>訂單 {orderId}</h1>
+      <h1 className='py-4 text-2xl text-white'>{t('order')} {orderId}</h1>
       <div className='my-4 grid md:grid-cols-4 md:gap-5'>
         <div className='md:col-span-3'>
           <div className='card bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>訂單資訊</h2>
-              <p>姓名: {name}</p>
-              <p>國家: {country}</p>
-              <p>地址: {address}</p>
-              <p>電子郵件: {email}</p>
-              <p>電話: {phone}</p>
+              <h2 className='card-title'>{t('shippingAddress')}</h2>
+              <p>{name}</p>
+              <p>{country}</p>
+              <p>{address}</p>
+              <p>{t('email')}: {email}</p>
+              <p>{t('phone')}: {phone}</p>
               {isDelivered ? (
-                <div className='text-success'>已於 {deliveredAt} 送達</div>
+                <div className='text-success'>{t('deliveredAt')} {deliveredAt}</div>
               ) : (
-                <div className='text-error'>尚未送達</div>
+                <div className='text-error'>{t('notDelivered')}</div>
               )}
             </div>
           </div>
 
           <div className='card mt-4 bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>付款方式</h2>
+              <h2 className='card-title'>{t('paymentMethod')}</h2>
               <p>{paymentMethod}</p>
               {isPaid ? (
-                <div className='text-success'>已於 {paidAt} 付款</div>
+                <div className='text-success'>{t('paidAt')} {paidAt}</div>
               ) : (
-                <div className='text-error'>尚未付款</div>
+                <div className='text-error'>{t('notPaid')}</div>
               )}
             </div>
           </div>
 
           <div className='card mt-4 bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>商品</h2>
+              <h2 className='card-title'>{t('orderItems')}</h2>
               <table className='table'>
                 <thead>
                   <tr>
-                    <th>商品</th>
-                    <th>數量</th>
-                    <th>價格</th>
+                    <th>{t('item')}</th>
+                    <th>{t('quantity')}</th>
+                    <th>{t('price')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -165,7 +167,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
                             width={50}
                             height={50}
                           ></Image>
-                          
+                          <span className='px-2'>{item.name}</span>
                         </Link>
                       </td>
                       <td>{item.qty}</td>
@@ -181,29 +183,29 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
         <div>
           <div className='card bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>訂單摘要</h2>
+              <h2 className='card-title'>{t('orderSummary')}</h2>
               <ul>
                 <li>
                   <div className='mb-2 flex justify-between'>
-                    <div>商品總額</div>
+                    <div>{t('items')}</div>
                     <div>€{itemsPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
-                    <div>稅金</div>
+                    <div>{t('tax')}</div>
                     <div>€{taxPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
-                    <div>運費</div>
+                    <div>{t('shipping')}</div>
                     <div>€{shippingPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className='mb-2 flex justify-between'>
-                    <div>總計</div>
+                    <div>{t('total')}</div>
                     <div>€{totalPrice}</div>
                   </div>
                 </li>
@@ -231,13 +233,13 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
                         {isDelivering && (
                           <span className='loading loading-spinner'></span>
                         )}
-                        標記為已送達
+                        {t('markAsDelivered')}
                       </button>
                     </li>
                     <li className="flex items-center gap-2">
                       <input
                         type="text"
-                        placeholder="新訂單 ID"
+                        placeholder={t('newOrderId')}
                         value={newId}
                         onChange={(e) => setNewId(e.target.value)}
                         className="input input-bordered w-full"
@@ -246,7 +248,7 @@ const OrderDetails = ({ orderId, paypalClientId }: IOrderDetails) => {
                         className='btn btn-primary'
                         onClick={() => editOrderId(newId)}
                       >
-                        更新 ID
+                        {t('updateId')}
                       </button>
                     </li>
                   </>

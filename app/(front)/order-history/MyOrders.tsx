@@ -8,26 +8,28 @@ import React from 'react';
 import useSWR from 'swr';
 
 import { Order } from '@/lib/models/OrderModel';
+import { useTranslation } from '@/lib/useTranslation';
 
 const MyOrders = () => {
   const router = useRouter();
   const { data: orders, error, isLoading } = useSWR('/api/orders/mine');
+  const { t } = useTranslation();
 
-  if (error) return <>發生錯誤</>;
-  if (isLoading) return <>載入中...</>;
-  if (!orders) return <>沒有訂單...</>;
+  if (error) return <>{t('error')}</>;
+  if (isLoading) return <>{t('loading')}</>;
+  if (!orders) return <>{t('noOrders')}</>;
 
   return (
     <div className='overflow-x-auto text-white'>
       <table className='table text-white'>
         <thead className="text-white">
           <tr>
-            <th>訂單編號</th>
-            <th>日期</th>
-            <th>總額</th>
-            <th>付款狀態</th>
-            <th>配送狀態</th>
-            <th>操作</th>
+            <th>{t('orderId')}</th>
+            <th>{t('date')}</th>
+            <th>{t('total')}</th>
+            <th>{t('paid')}</th>
+            <th>{t('delivered')}</th>
+            <th>{t('action')}</th>
           </tr>
         </thead>
         <tbody>
@@ -41,16 +43,16 @@ const MyOrders = () => {
               <td>
                 {order.isPaid && order.paidAt
                   ? `${format(new Date(order.paidAt), 'yyyy-MM-dd')}`
-                  : '未付款'}
+                  : t('notPaid')}
               </td>
               <td>
                 {order.isDelivered && order.deliveredAt
                   ? `${format(new Date(order.deliveredAt), 'yyyy-MM-dd')}`
-                  : '未配送'}
+                  : t('notDelivered')}
               </td>
               <td>
                 <Link href={`/order/${order.id}`} passHref>
-                  詳情
+                  {t('details')}
                 </Link>
               </td>
             </tr>

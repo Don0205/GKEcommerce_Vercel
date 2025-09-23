@@ -1,7 +1,11 @@
 //components\footer\Footer.tsx
+'use client';
+
 import Link from 'next/link';
+import { useTranslation } from '@/lib/useTranslation';
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -9,31 +13,31 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold text-lg mb-4">我們產品</h3>
+            <h3 className="font-bold text-lg mb-4">{t('ourProducts')}</h3>
             <ul className="space-y-2">
-              <li><Link href="/search?category=blindBox" className="hover:underline">盲盒</Link></li>
-              <li><Link href="/search?category=動漫" className="hover:underline">動漫</Link></li>
-              <li><Link href="/search?category=其他" className="hover:underline">其他</Link></li>
+              <li><Link href="/search?category=blindBox" className="hover:underline">{t('blindBox')}</Link></li>
+              <li><Link href="/search?category=動漫" className="hover:underline">{t('anime')}</Link></li>
+              <li><Link href="/search?category=其他" className="hover:underline">{t('other')}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-4">客戶服務</h3>
+            <h3 className="font-bold text-lg mb-4">{t('customerService')}</h3>
             <ul className="space-y-2">
-              <li><Link href="/shipping-policy" className="hover:underline">運送政策</Link></li>
-              <li><Link href="/return-refund-policy" className="hover:underline">退貨和退款政策</Link></li>
+              <li><Link href="/shipping-policy" className="hover:underline">{t('shippingPolicy')}</Link></li>
+              <li><Link href="/return-refund-policy" className="hover:underline">{t('returnRefundPolicy')}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-4">法律聲明</h3>
+            <h3 className="font-bold text-lg mb-4">{t('legalNotices')}</h3>
             <ul className="space-y-2">
-              <li><Link href="/terms-of-service" className="hover:underline">使用條款</Link></li>
-              <li><Link href="/privacy-policy" className="hover:underline">隱私政策</Link></li>
-              <li><Link href="/cookie-policy" className="hover:underline">Cookie 政策</Link></li>
-              <li><Link href="/intellectual-property" className="hover:underline">智慧財產權聲明</Link></li>
+              <li><Link href="/terms-of-service" className="hover:underline">{t('termsOfService')}</Link></li>
+              <li><Link href="/privacy-policy" className="hover:underline">{t('privacyPolicy')}</Link></li>
+              <li><Link href="/cookie-policy" className="hover:underline">{t('cookiePolicy')}</Link></li>
+              <li><Link href="/intellectual-property" className="hover:underline">{t('intellectualPropertyNotice')}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-4">關注我們</h3>
+            <h3 className="font-bold text-lg mb-4">{t('followUs')}</h3>
             <div className="flex space-x-4">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="fill-current"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"></path></svg>
@@ -48,10 +52,10 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-base-content/10 text-center">
-          <p>&copy; {currentYear} GK天堂. 版權所有.</p>
+          <p>{t('copyrightNotice').replace('{year}', currentYear.toString())}</p>
           <p className="mt-2">
-            <Link href="/terms-of-service" className="hover:underline">使用條款</Link> | 
-            <Link href="/privacy-policy" className="hover:underline ml-2">隱私政策</Link>
+            <Link href="/terms-of-service" className="hover:underline">{t('termsOfService')}</Link> | 
+            <Link href="/privacy-policy" className="hover:underline ml-2">{t('privacyPolicy')}</Link>
           </p>
         </div>
       </div>

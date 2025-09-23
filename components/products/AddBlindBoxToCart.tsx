@@ -1,15 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/useTranslation';
 
 import useCartService, { calcPrice, cartStore } from '@/lib/hooks/useCartStore';
 import { OrderItem } from '@/lib/models/OrderModel';
 
 const AddBlindBoxToCart = ({ selectedProducts }: { selectedProducts: OrderItem[] }) => {
-  const { items, increase } = useCartService(); // 取 items 用於檢查
-  const router = useRouter(); // 新增這行來使用 router
+  const { t } = useTranslation();
+  const { items, increase } = useCartService();
+  const router = useRouter();
 
-const addToCartHandler = () => {
+  const addToCartHandler = () => {
   let updatedCartItems = [...items];
 
   selectedProducts.forEach((item) => {
@@ -42,7 +44,7 @@ const addToCartHandler = () => {
       type='button'
       onClick={addToCartHandler}
     >
-      加入盲盒到購物車
+      {t('addBlindBoxToCart')}
     </button>
   );
 };

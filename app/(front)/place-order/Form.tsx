@@ -1,3 +1,4 @@
+//app\(front)\place-order\Form.tsx
 'use client';
 
 import Image from 'next/image';
@@ -10,6 +11,7 @@ import useSWRMutation from 'swr/mutation';
 
 import CheckoutSteps from '@/components/checkout/CheckoutSteps';
 import useCartService from '@/lib/hooks/useCartStore';
+import { useTranslation } from '@/lib/useTranslation';
 
 const Form = () => {
   const router = useRouter();
@@ -24,14 +26,13 @@ const Form = () => {
 
   const [taxPrice, setTaxPrice] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
+  const { t } = useTranslation();
 
-  // 使用 SWR 從 API 獲取稅率，基於 shippingAddress.country
   const { data: taxData } = useSWR(shippingAddress.country ? `/api/tax?country=${shippingAddress.country}` : null);
 
   useEffect(() => {
     if (taxData) {
-      const taxRate = taxData.textNum || 0; // 直接使用數字
-      // const newTaxPrice = itemsPrice * taxRate;
+      const taxRate = taxData.textNum || 0;
       const newTaxPrice = itemsPrice * taxRate;
       setTaxPrice(newTaxPrice);
       setTotalPrice(itemsPrice + newTaxPrice + shippingPrice);
@@ -55,15 +56,15 @@ const Form = () => {
           phone: shippingAddress.phone,
           items,
           itemsPrice,
-          taxPrice, // 使用新計算的 taxPrice
+          taxPrice,
           shippingPrice,
-          totalPrice, // 使用新計算的 totalPrice
+          totalPrice,
         }),
       });
       const data = await res.json();
       if (res.ok) {
         clear();
-        toast.success('訂單已成功下達');
+        toast.success(t('orderPlacedSuccessfully'));
         return router.push(`/order/${data.order._id}`);
       } else {
         toast.error(data.message);
@@ -88,7 +89,7 @@ const Form = () => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return <>載入中...</>;
+  if (!mounted) return <>{t('loading')}</>;
 
   return (
     <div>
@@ -98,16 +99,16 @@ const Form = () => {
         <div className='overflow-x-auto md:col-span-3'>
           <div className='card bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>送貨地址</h2>
+              <h2 className='card-title'>{t('shippingAddress')}</h2>
               <p>{shippingAddress.name}</p>
               <p>
                 {shippingAddress.address}, {shippingAddress.country}{' '}
               </p>
-              <p>電子郵件: {shippingAddress.email}</p>
-              <p>電話: {shippingAddress.phone}</p>
+              <p>{t('email')}: {shippingAddress.email}</p>
+              <p>{t('phone')}: {shippingAddress.phone}</p>
               <div>
                 <Link className='btn' href='/shipping'>
-                  編輯
+                  {t('edit')}
                 </Link>
               </div>
             </div>
@@ -115,19 +116,19 @@ const Form = () => {
 
           <div className='card mt-4 bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>付款方式</h2>
+              <h2 className='card-title'>{t('paymentMethod')}</h2>
               <p>{paymentMethod}</p>
               {paymentMethod === 'Bank' && (
                 <>
-                <p>銀行卡號: {bankData?.cardNum}</p>
-                <p>分行號碼: {bankData?.branchNum}</p>
-                <p>帳戶名稱: {bankData?.accountName}</p>
-                <p>客戶轉帳時必須備註(辨識碼)</p>
+                <p>{t('bankCardNumber')}: {bankData?.cardNum}</p>
+                <p>{t('branchNumber')}: {bankData?.branchNum}</p>
+                <p>{t('accountName')}: {bankData?.accountName}</p>
+                <p>{t('transferNote')}</p>
                 </>
               )}
               <div>
                 <Link className='btn' href='/payment'>
-                  編輯
+                  {t('edit')}
                 </Link>
               </div>
             </div>
@@ -135,13 +136,13 @@ const Form = () => {
 
           <div className='card mt-4 bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>商品</h2>
+              <h2 className='card-title'>{t('orderItems')}</h2>
               <table className='table'>
                 <thead>
                   <tr>
-                    <th>商品</th>
-                    <th>數量</th>
-                    <th>價格</th>
+                    <th>{t('item')}</th>
+                    <th>{t('quantity')}</th>
+                    <th>{t('price')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,7 +172,7 @@ const Form = () => {
               </table>
               <div>
                 <Link className='btn' href='/cart'>
-                  編輯
+                  {t('edit')}
                 </Link>
               </div>
             </div>
@@ -181,30 +182,30 @@ const Form = () => {
         <div>
           <div className='card bg-base-300'>
             <div className='card-body'>
-              <h2 className='card-title'>訂單摘要</h2>
+              <h2 className='card-title'>{t('orderSummary')}</h2>
               <ul className='space-y-3'>
                 <li>
                   <div className=' flex justify-between'>
-                    <div>商品總額</div>
+                    <div>{t('items')}</div>
                     <div>€{itemsPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
-                    <div>稅金</div>
-                    <div>€{taxPrice.toFixed(2)}</div> {/* 使用新計算的 taxPrice */}
+                    <div>{t('tax')}</div>
+                    <div>€{taxPrice.toFixed(2)}</div>
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
-                    <div>運費</div>
+                    <div>{t('shipping')}</div>
                     <div>€{shippingPrice}</div>
                   </div>
                 </li>
                 <li>
                   <div className=' flex justify-between'>
-                    <div>總計</div>
-                    <div>€{totalPrice.toFixed(2)}</div> {/* 使用新計算的 totalPrice */}
+                    <div>{t('total')}</div>
+                    <div>€{totalPrice.toFixed(2)}</div>
                   </div>
                 </li>
 
@@ -217,7 +218,7 @@ const Form = () => {
                     {isPlacing && (
                       <span className='loading loading-spinner'></span>
                     )}
-                    下單
+                    {t('placeOrder')}
                   </button>
                 </li>
               </ul>

@@ -1,4 +1,4 @@
-//components\header\Menu.tsx
+// components/header/Menu.tsx
 'use client';
 
 import { ChevronDown, Moon, ShoppingCart, Sun } from 'lucide-react';
@@ -7,13 +7,13 @@ import { signOut, signIn, useSession } from 'next-auth/react';
 
 import useCartService from '@/lib/hooks/useCartStore';
 import useLayoutService from '@/lib/hooks/useLayout';
-
-import { SearchBox } from './SearchBox';
+import { useTranslation } from '@/lib/useTranslation';
 
 const Menu = () => {
   const { items, init } = useCartService();
   const { data: session } = useSession();
   const { theme, toggleTheme } = useLayoutService();
+  const { t } = useTranslation();
 
   const signOutHandler = () => {
     signOut({ callbackUrl: '/signin' });
@@ -25,80 +25,75 @@ const Menu = () => {
   };
 
   return (
-    <>
-      <div className='hidden md:block'>
-        <SearchBox />
-      </div>
-      <ul className='flex gap-2'>
-        <li className='flex items-center gap-2 md:gap-4'>
-          <label className='swap swap-rotate'>
-            <input
-              type='checkbox'
-              checked={theme === 'light'}
-              onChange={toggleTheme}
-            />
-            <Sun className='swap-on' />
-            <Moon className='swap-off' />
-          </label>
-          <Link
-            href='/cart'
-            className='relative mr-1'
-            aria-label='購物車'
-          >
-            <ShoppingCart />
-            <span className='absolute -right-4 -top-4'>
-              {items.length !== 0 && (
-                <div className='badge badge-primary px-1.5'>
-                  {items.reduce((a, c) => a + c.qty, 0)}
-                </div>
-              )}
-            </span>
-          </Link>
-        </li>
-        {session && session.user ? (
-          <li>
-            <div className='dropdown dropdown-end dropdown-bottom'>
-              <label tabIndex={0} className='btn btn-ghost rounded-btn'>
-                {session.user.name}
-                <ChevronDown />
-              </label>
-              <ul
-                tabIndex={0}
-                className='menu dropdown-content z-[1] w-52 rounded-box bg-base-300 p-2 shadow '
-              >
-                {session.user.isAdmin && (
-                  <li onClick={handleClick}>
-                    <Link href='/admin/dashboard'>管理員儀表板</Link>
-                  </li>
-                )}
-
-                <li onClick={handleClick}>
-                  <Link href='/order-history'>訂單歷史</Link>
-                </li>
-                <li onClick={handleClick}>
-                  <Link href='/profile'>個人資料</Link>
-                </li>
-                <li onClick={handleClick}>
-                  <button type='button' onClick={signOutHandler}>
-                    登出
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </li>
-        ) : (
-          <li>
-            <button
-              className='btn btn-ghost rounded-btn'
-              type='button'
-              onClick={() => signIn()}
+    <ul className='flex gap-2'>
+      <li className='flex items-center gap-2 md:gap-4'>
+        <label className='swap swap-rotate'>
+          <input
+            type='checkbox'
+            checked={theme === 'light'}
+            onChange={toggleTheme}
+          />
+          <Sun className='swap-on' />
+          <Moon className='swap-off' />
+        </label>
+        <Link
+          href='/cart'
+          className='relative mr-1'
+          aria-label={t('cart')}
+        >
+          <ShoppingCart />
+          <span className='absolute -right-4 -top-4'>
+            {items.length !== 0 && (
+              <div className='badge badge-primary px-1.5'>
+                {items.reduce((a, c) => a + c.qty, 0)}
+              </div>
+            )}
+          </span>
+        </Link>
+      </li>
+      {session && session.user ? (
+        <li>
+          <div className='dropdown dropdown-end dropdown-bottom'>
+            <label tabIndex={0} className='btn btn-ghost rounded-btn'>
+              {session.user.name}
+              <ChevronDown />
+            </label>
+            <ul
+              tabIndex={0}
+              className='menu dropdown-content z-[1] w-52 rounded-box bg-base-300 p-2 shadow '
             >
-              登入
-            </button>
-          </li>
-        )}
-      </ul>
-    </>
+              {session.user.isAdmin && (
+                <li onClick={handleClick}>
+                  <Link href='/admin/dashboard'>{t('adminDashboard')}</Link>
+                </li>
+              )}
+
+              <li onClick={handleClick}>
+                <Link href='/order-history'>{t('orderHistory')}</Link>
+              </li>
+              <li onClick={handleClick}>
+                <Link href='/profile'>{t('profile')}</Link>
+              </li>
+              <li onClick={handleClick}>
+                <button type='button' onClick={signOutHandler}>
+                  {t('logout')}
+                </button>
+              </li>
+            </ul>
+          </div>
+        </li>
+      ) : (
+        <li>
+          <button
+            className='btn btn-ghost rounded-btn'
+            type='button'
+            onClick={() => signIn()}
+          >
+            {t('login')}
+          </button>
+        </li>
+      )}
+    </ul>
   );
 };
 

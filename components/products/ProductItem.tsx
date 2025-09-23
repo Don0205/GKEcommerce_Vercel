@@ -1,10 +1,8 @@
 // components/products/ProductItem.tsx
+// components/products/ProductItem.tsx
 import Image from 'next/image';
 import Link from 'next/link';
-import { getPlaiceholder } from 'plaiceholder';
-
 import { Product } from '@/lib/models/ProductModel';
-
 import { Rating } from './Rating';
 
 const ProductItem = async ({ 
@@ -14,45 +12,28 @@ const ProductItem = async ({
   product: Product; 
   extraQuery?: Record<string, string>; 
 }) => {
-  // 確保 images 是陣列，如果 undefined 則設為空陣列
   const images = product.images || [];
-
-  // 使用 banner 作為主圖，如果沒有則用 images[0]
   let mainImage = product.banner || (images.length > 0 ? images[0] : '');
 
-  // 如果 mainImage 為空，使用預設圖片
   if (!mainImage) {
-    mainImage = '/images/placeholder.jpg';  // 替換為您的預設圖片 URL
+    mainImage = '/images/placeholder.jpg';
   }
 
   let base64 = '';
 
   if (mainImage.startsWith('https')) {
     try {
-      const res = await fetch(mainImage);
-      if (!res.ok) {
-        throw new Error(
-          `Failed to fetch image: ${res.status} ${res.statusText}`,
-        );
+      const res = await fetch(`/api/plaiceholder?url=${encodeURIComponent(mainImage)}`);
+      if (res.ok) {
+        const data = await res.json();
+        base64 = data.base64;
+      } else {
+        console.error('Failed to fetch placeholder:', await res.text());
       }
-      // 确保响应是图片类型
-      const contentType = res.headers.get('content-type');
-      if (!contentType?.startsWith('image/')) {
-        throw new Error('Response is not an image');
-      }
-      const buffer = Buffer.from(await res.arrayBuffer());
-      if (buffer.length === 0) {
-        throw new Error('Image buffer is empty');
-      }
-      const result = await getPlaiceholder(buffer);
-      base64 = result.base64;
     } catch (error) {
-      console.error('Error processing image:', error);
-      // 设置默认 base64 或错误处理逻辑
-      base64 = ''; // 或者使用默认占位图
+      console.error('Error fetching placeholder:', error);
     }
   } else {
-    // 如果是相對路徑，我們跳過 plaiceholder 處理
     base64 = mainImage;
   }
 

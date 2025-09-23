@@ -1,6 +1,7 @@
 //components\categories\Categories.tsx
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/useTranslation';
 
 import Overlay from './Overlay';
 import BlidBox from '../../public/images/categories/blidBox.jpg';
@@ -8,6 +9,8 @@ import Figures from '../../public/images/categories/Figures.jpg';
 import Hero from '../../public/images/categories/Hero.jpg';
 
 const Categories = () => {
+  const { t } = useTranslation();
+
   return (
     <div className='grid auto-rows-[300px] grid-cols-2 gap-4 md:auto-rows-[330px] md:grid-cols-4'>
       <Link
@@ -16,14 +19,14 @@ const Categories = () => {
       >
         <Image
           src={BlidBox}
-          alt='盲盒系列'
+          alt={t('blindBoxSeries')}
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='盲盒' />
+        <Overlay category={t('blindBox')} />
       </Link>
       <Link
         href='/search?category=動漫'
@@ -31,14 +34,14 @@ const Categories = () => {
       >
         <Image
           src={Figures}
-          alt='動漫系列'
+          alt={t('animeSeries')}
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='動漫' />
+        <Overlay category={t('anime')} />
       </Link>
       <Link
         href='/search?category=其他'
@@ -46,14 +49,14 @@ const Categories = () => {
       >
         <Image
           src={Hero}
-          alt='其他系列'
+          alt={t('otherSeries')}
           width={500}
           height={500}
           className='h-full w-full object-cover'
           placeholder='blur'
           loading='lazy'
         />
-        <Overlay category='其他' />
+        <Overlay category={t('other')} />
       </Link>
     </div>
   );

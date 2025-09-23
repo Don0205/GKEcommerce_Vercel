@@ -1,6 +1,7 @@
 //components\ClientProvider.tsx A
 'use client';
 
+import { useTranslation } from '@/lib/useTranslation';
 import { usePathname } from 'next/navigation';
 import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { useEffect, useState } from 'react';
@@ -11,6 +12,7 @@ import { cartStore } from '@/lib/hooks/useCartStore';
 import useLayoutService from '@/lib/hooks/useLayout';
 
 const ClientProvider = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation();
   const { theme } = useLayoutService();
   const [selectedTheme, setSelectedTheme] = useState('system');
   const pathname = usePathname();
@@ -42,14 +44,14 @@ const ClientProvider = ({ children }: { children: React.ReactNode }) => {
         fetcher: async (resource, init) => {
           const res = await fetch(resource, init);
           if (!res.ok) {
-            throw new Error('獲取數據時發生錯誤。');
+            throw new Error(t('dataFetchError'));
           }
           return res.json();
         },
       }}
     >
-      <div 
-        data-theme={selectedTheme} 
+      <div
+        data-theme={selectedTheme}
         className={`flex min-h-screen flex-col ${!isAdminPage ? 'bg-custom' : ''}`}
       >
         <Toaster toastOptions={{ className: 'toaster-con' }} />

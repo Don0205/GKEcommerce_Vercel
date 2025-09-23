@@ -1,12 +1,15 @@
-//components\header\SearchBox.tsx
+// components/header/SearchBox.tsx
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next-nprogress-bar';
 import { useState } from 'react';
 import useSWR from 'swr';
+import { useTranslation } from '@/lib/useTranslation';
 
 export const SearchBox = () => {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const q = searchParams.get('q') || '';
   const category = searchParams.get('category') || 'all';
@@ -36,11 +39,11 @@ export const SearchBox = () => {
         <select
           name='category'
           defaultValue={formCategory}
-          aria-label='類別'
+          aria-label={t('category')}
           className='join-item select select-bordered w-[90px]'
           onChange={(e) => setFormCategory(e.target.value)}
         >
-          <option value='all'>全部</option>
+          <option value='all'>{t('all')}</option>
           {categories?.map((c: string) => (
             <option key={c} value={c}>
               {c}
@@ -49,14 +52,14 @@ export const SearchBox = () => {
         </select>
         <input
           className='input join-item input-bordered w-40 sm:w-44'
-          placeholder='搜尋'
-          aria-label='搜尋'
+          placeholder={t('search')}
+          aria-label={t('search')}
           defaultValue={q}
           name='q'
           onChange={(e) => setFormQuery(e.target.value)}
         />
         <button className='btn join-item input-bordered' type='submit'>
-          搜尋
+          {t('search')}
         </button>
       </div>
     </form>

@@ -1,13 +1,12 @@
-//app\(front)\register\page.tsx
+// app/(front)/register/page.tsx
 import { Metadata } from 'next';
-
 import Form from './Form';
 
 export const metadata: Metadata = {
-  title: '註冊',
+  title: 'Register', // 使用靜態標題
 };
 
-const RegisterPage = async () => {
+const RegisterPage = () => {
   return (
     <div>
       <Form />

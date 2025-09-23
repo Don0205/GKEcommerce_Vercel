@@ -1,15 +1,19 @@
 //app\not-found.tsx
+'use client';
+
 import Link from 'next/link';
 import React from 'react';
-
+import { useTranslation } from '@/lib/useTranslation';
 
 const NotFoundPage = () => {
+  const { t } = useTranslation();
+
   return (
     <div className='grid flex-1 place-items-center'>
       <div className='flex flex-col justify-center'>
-        <h1 className='mb-4 text-xl font-semibold'>404 - Page not found</h1>
+        <h1 className='mb-4 text-xl font-semibold'>{t('pageNotFound')}</h1>
         <Link href='/' className='btn'>
-          Back Home
+          {t('backToHome')}
         </Link>
       </div>
     </div>
@@ -17,4 +21,3 @@ const NotFoundPage = () => {
 };
 
 export default NotFoundPage;
-

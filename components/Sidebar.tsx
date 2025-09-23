@@ -1,12 +1,14 @@
-//components\Sidebar.tsx
+// components/Sidebar.tsx
 'use client';
 
 import Link from 'next/link';
 import useSWR from 'swr';
+import { useTranslation } from '@/lib/useTranslation';
 
 import useLayoutService from '@/lib/hooks/useLayout';
 
 const Sidebar = () => {
+  const { t } = useTranslation();
   const { toggleDrawer } = useLayoutService();
   const {
     data: categories,
@@ -14,13 +16,13 @@ const Sidebar = () => {
     isLoading,
   } = useSWR('/api/products/categories');
 
-  if (error) return error.message;
-  if (isLoading || !categories) return '載入中...';
+  if (error) return t('error');
+  if (isLoading || !categories) return t('loading');
 
   return (
     <ul className='menu min-h-full w-80 bg-base-200 p-4 text-base-content'>
       <li>
-        <h2 className='text-xl'>商品分類</h2>
+        <h2 className='text-xl'>{t('productCategories')}</h2>
       </li>
       {categories.map((category: string) => (
         <li key={category}>

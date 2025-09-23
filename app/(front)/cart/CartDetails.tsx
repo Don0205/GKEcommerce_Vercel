@@ -1,4 +1,4 @@
-// app/(front)/cart/CartDetails.tsx a
+// app/(front)/cart/CartDetails.tsx
 'use client';
 
 import Image from 'next/image';
@@ -7,26 +7,28 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import useCartService from '@/lib/hooks/useCartStore';
+import { useTranslation } from '@/lib/useTranslation';
 
 const CartDetails = () => {
   const { items, itemsPrice, decrease, increase } = useCartService();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     setMounted(true);
   }, [items, itemsPrice, decrease, increase]);
 
-  if (!mounted) return <>載入中...</>;
+  if (!mounted) return <>{t('loading')}</>;
 
   return (
     <div className='pb-20'>
-      <h1 className='py-4 text-2xl text-white'>購物車</h1>
+      <h1 className='py-4 text-2xl text-white'>{t('cart')}</h1>
       {items.length === 0 ? (
         <div>
-          <p className='mb-2 text-white'>購物車是空的 :(</p>
+          <p className='mb-2 text-white'>{t('cartEmpty')}</p>
           <Link href='/' className='btn'>
-            去購物
+            {t('goShopping')}
           </Link>
         </div>
       ) : (
@@ -35,9 +37,9 @@ const CartDetails = () => {
             <table className='table'>
               <thead>
                 <tr className='text-white'>
-                  <th>商品</th>
-                  <th>數量</th>
-                  <th>價格</th>
+                  <th>{t('product')}</th>
+                  <th>{t('quantity')}</th>
+                  <th>{t('price')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,7 +88,7 @@ const CartDetails = () => {
             <div className='card-body'>
               <ul>
                 <li className='pb-3 text-xl'>
-                  小計: {items.reduce((acc, item) => acc + item.qty, 0)} 件
+                  {t('subtotal')}: {items.reduce((acc, item) => acc + item.qty, 0)} {t('items')}
                   <br />€ {itemsPrice}
                 </li>
                 <li>
@@ -95,7 +97,7 @@ const CartDetails = () => {
                     className='btn btn-primary w-full'
                     onClick={() => router.push('/shipping')}
                   >
-                    前往結帳
+                    {t('proceedToCheckout')}
                   </button>
                 </li>
               </ul>

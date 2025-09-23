@@ -3,11 +3,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/lib/useTranslation';
 
 import useCartService from '@/lib/hooks/useCartStore';
 import { OrderItem } from '@/lib/models/OrderModel';
 
 const AddToCart = ({ item }: { item: OrderItem }) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { items, increase, decrease } = useCartService();
   const [existItem, setExistItem] = useState<OrderItem | undefined>();
@@ -36,7 +38,7 @@ const AddToCart = ({ item }: { item: OrderItem }) => {
       type='button'
       onClick={addToCartHandler}
     >
-      加入購物車
+      {t('addToCart')}
     </button>
   );
 };

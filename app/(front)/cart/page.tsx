@@ -1,13 +1,12 @@
 //app\(front)\cart\page.tsx
-import { Metadata } from 'next';
+'use client';
 
 import CartDetails from './CartDetails';
+import { useTranslation } from '@/lib/useTranslation';
 
-export const metadata: Metadata = {
-  title: '購物車',
-};
 
 const CartPage = () => {
+  const { t } = useTranslation();
   return (
     <div>
       <CartDetails />

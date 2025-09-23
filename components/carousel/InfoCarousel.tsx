@@ -1,6 +1,9 @@
 // components/carousel/InfoCarousel.tsx
+'use client'
+
 import Slider from '@/components/slider/InfoSlider';
 import { delay } from '@/lib/utils';
+import { useTranslation } from '@/lib/useTranslation';
 
 const getImages = async () => {
   await delay(2000); // 模擬加載延遲
@@ -14,8 +17,9 @@ const getImages = async () => {
 };
 
 const InfoCarousel = async () => {
+  const { t } = useTranslation();
   await delay(2000); // 模擬加載延遲
-  return <Slider title="注意事項" getProducts={getImages} />;
+  return <Slider title={t('notices')} getProducts={getImages} />;
 };
 
 export default InfoCarousel;

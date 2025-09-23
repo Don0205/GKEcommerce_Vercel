@@ -1,20 +1,22 @@
-import OrderDetails from './OrderDetails';
+//app\(front)\order\[id]\page.tsx
+import { Metadata } from 'next';
+import ClientOrderDetails from './ClientOrderDetails';
+import { translations } from '@/lib/translations';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   return {
-    title: `訂單 ${resolvedParams.id}`,
+    title: `Order ${resolvedParams.id}`,
   };
 };
 
-async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
+function OrderDetailsPage({ params }: { params: { id: string } }) {
   return (
-    <OrderDetails
+    <ClientOrderDetails
       paypalClientId={process.env.PAYPAL_CLIENT_ID || 'sb'}
-      orderId={resolvedParams.id}
+      orderId={params.id}
     />
   );
-};
+}
 
 export default OrderDetailsPage;

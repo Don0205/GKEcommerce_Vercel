@@ -1,14 +1,13 @@
-//app\(front)\profile\page.tsx
+// app/(front)/profile/page.tsx
 import { Metadata } from 'next';
 import React from 'react';
-
 import Form from './Form';
 
 export const metadata: Metadata = {
-  title: '個人資料',
+  title: 'Profile', // 使用靜態標題
 };
 
-const ProfilePage = async () => {
+const ProfilePage = () => {
   return (
     <div>
       <Form />

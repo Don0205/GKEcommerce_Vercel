@@ -1,4 +1,4 @@
-//app\(front)\profile\Form.tsx
+// app/(front)/profile/Form.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { useTranslation } from '@/lib/useTranslation';
 
 type Inputs = {
   name: string;
@@ -15,6 +16,7 @@ type Inputs = {
 };
 
 const Form = () => {
+  const { t } = useTranslation();
   const { data: session, update } = useSession();
   const router = useRouter();
 
@@ -54,7 +56,7 @@ const Form = () => {
         }),
       });
       if (res.status === 200) {
-        toast.success('個人資料更新成功');
+        toast.success(t('profileUpdateSuccess'));
         const newSession = {
           ...session,
           user: {
@@ -66,7 +68,7 @@ const Form = () => {
         await update(newSession);
       } else {
         const data = await res.json();
-        toast.error(data.message || '錯誤');
+        toast.error(data.message || t('error'));
       }
     } catch (err: any) {
       const error =
@@ -80,17 +82,17 @@ const Form = () => {
   return (
     <div className='card mx-auto my-4 max-w-sm bg-base-300'>
       <div className='card-body'>
-        <h1 className='card-title'>個人資料</h1>
+        <h1 className='card-title'>{t('profile')}</h1>
         <form onSubmit={handleSubmit(formSubmit)}>
           <div className='my-2'>
             <label className='label' htmlFor='name'>
-              姓名
+              {t('name')}
             </label>
             <input
               type='text'
               id='name'
               {...register('name', {
-                required: '請輸入姓名',
+                required: t('pleaseEnterName'),
               })}
               className='input input-bordered w-full max-w-sm'
             />
@@ -100,16 +102,16 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='email'>
-              電子郵件
+              {t('email')}
             </label>
             <input
               type='text'
               id='email'
               {...register('email', {
-                required: '請輸入電子郵件',
+                required: t('pleaseEnterEmail'),
                 pattern: {
                   value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
-                  message: '電子郵件格式不正確',
+                  message: t('invalidEmailFormat'),
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -120,7 +122,7 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='password'>
-              新密碼
+              {t('newPassword')}
             </label>
             <input
               type='password'
@@ -134,7 +136,7 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='confirmPassword'>
-              確認新密碼
+              {t('confirmPassword')}
             </label>
             <input
               type='password'
@@ -142,7 +144,7 @@ const Form = () => {
               {...register('confirmPassword', {
                 validate: (value) => {
                   const { password } = getValues();
-                  return password === value || '密碼不匹配！';
+                  return password === value || t('passwordsDoNotMatch');
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -161,7 +163,7 @@ const Form = () => {
               {isSubmitting && (
                 <span className='loading loading-spinner'></span>
               )}
-              更新
+              {t('update')}
             </button>
           </div>
         </form>

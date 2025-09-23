@@ -1,6 +1,5 @@
 //app\(front)\signin\page.tsx
 import { Metadata } from 'next';
-
 import Form from './Form';
 
 export const metadata: Metadata = {

@@ -3,10 +3,12 @@
 
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '@/lib/useTranslation';
 
 import { cn } from '@/lib/utils';
 
 const ReadMore = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation();
   const [isMore, setIsMore] = useState(false);
 
   return (
@@ -22,7 +24,7 @@ const ReadMore = ({ children }: { children: React.ReactNode }) => {
               onClick={() => setIsMore(true)}
               className='btn mx-auto mt-2 self-end'
             >
-              閱讀更多
+              {t('readMore')}
               <ChevronDown />
             </button>
           </div>
@@ -31,7 +33,7 @@ const ReadMore = ({ children }: { children: React.ReactNode }) => {
         <div className='flex items-center'>
           {isMore && (
             <button onClick={() => setIsMore(false)} className='btn mx-auto'>
-              隱藏
+              {t('hide')}
               <ChevronUp />
             </button>
           )}

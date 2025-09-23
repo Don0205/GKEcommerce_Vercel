@@ -1,11 +1,15 @@
 //components\products\ProductItems.tsx
+'use client';
+
 import Slider from '@/components/slider/Slider';
 import productService from '@/lib/services/productService';
 import { convertDocToObj, delay } from '@/lib/utils';
+import { useTranslation } from '@/lib/useTranslation';
 
 const ProductItems = async () => {
+  const { t } = useTranslation();
   await delay(4000);
-  return <Slider title="最新商品" getProducts={productService.getLatest} />;
+  return <Slider title={t('latestProducts')} getProducts={productService.getLatest} />;
 };
 
 export default ProductItems;

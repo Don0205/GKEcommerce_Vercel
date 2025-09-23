@@ -1,4 +1,4 @@
-//app\(front)\register\Form.tsx
+// app/(front)/register/Form.tsx
 'use client';
 
 import Link from 'next/link';
@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { useTranslation } from '@/lib/useTranslation';
 
 type Inputs = {
   name: string;
@@ -16,6 +17,7 @@ type Inputs = {
 };
 
 const Form = () => {
+  const { t } = useTranslation();
   const { data: session } = useSession();
 
   const params = useSearchParams();
@@ -59,7 +61,7 @@ const Form = () => {
       });
       if (res.ok) {
         return router.push(
-          `/signin?callbackUrl=${callbackUrl}&success=帳號已成功創建`,
+          `/signin?callbackUrl=${callbackUrl}&success=${encodeURIComponent(t('accountCreatedSuccess'))}`,
         );
       } else {
         const data = await res.json();
@@ -68,26 +70,26 @@ const Form = () => {
     } catch (err: any) {
       const error =
         err.message && err.message.indexOf('E11000') === 0
-          ? '電子郵件已被使用'
+          ? t('emailAlreadyInUse')
           : err.message;
-      toast.error(error || '錯誤');
+      toast.error(error || t('error'));
     }
   };
 
   return (
     <div className='card mx-auto my-4 max-w-sm bg-base-300'>
       <div className='card-body'>
-        <h1 className='card-title'>註冊</h1>
+        <h1 className='card-title'>{t('register')}</h1>
         <form onSubmit={handleSubmit(formSubmit)}>
           <div className='my-2'>
             <label className='label' htmlFor='name'>
-              姓名
+              {t('name')}
             </label>
             <input
               type='text'
               id='name'
               {...register('name', {
-                required: '請輸入姓名',
+                required: t('pleaseEnterName'),
               })}
               className='input input-bordered w-full max-w-sm'
             />
@@ -97,16 +99,16 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='email'>
-              電子郵件
+              {t('email')}
             </label>
             <input
               type='text'
               id='email'
               {...register('email', {
-                required: '請輸入電子郵件',
+                required: t('pleaseEnterEmail'),
                 pattern: {
                   value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
-                  message: '電子郵件格式不正確',
+                  message: t('invalidEmailFormat'),
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -117,13 +119,13 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='password'>
-              密碼
+              {t('password')}
             </label>
             <input
               type='password'
               id='password'
               {...register('password', {
-                required: '請輸入密碼',
+                required: t('pleaseEnterPassword'),
               })}
               className='input input-bordered w-full max-w-sm'
             />
@@ -133,16 +135,16 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='confirmPassword'>
-              確認密碼
+              {t('confirmPassword')}
             </label>
             <input
               type='password'
               id='confirmPassword'
               {...register('confirmPassword', {
-                required: '請確認密碼',
+                required: t('pleaseConfirmPassword'),
                 validate: (value) => {
                   const { password } = getValues();
-                  return password === value || '密碼不匹配！';
+                  return password === value || t('passwordsDoNotMatch');
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -160,16 +162,16 @@ const Form = () => {
               {isSubmitting && (
                 <span className='loading loading-spinner'></span>
               )}
-              註冊
+              {t('register')}
             </button>
           </div>
         </form>
 
         <div className='divider'> </div>
         <div>
-          已經有帳號了？{' '}
+          {t('alreadyHaveAccount')}{' '}
           <Link className='link' href={`/signin?callbackUrl=${callbackUrl}`}>
-            登入
+            {t('login')}
           </Link>
         </div>
       </div>

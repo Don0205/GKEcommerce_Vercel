@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import { useTranslation } from '@/lib/useTranslation';
 
 type Inputs = {
   email: string;
@@ -13,6 +14,7 @@ type Inputs = {
 };
 
 const Form = () => {
+  const { t } = useTranslation();
   const params = useSearchParams();
   const { data: session } = useSession();
 
@@ -47,11 +49,11 @@ const Form = () => {
   return (
     <div className='card mx-auto my-4 max-w-sm bg-base-300'>
       <div className='card-body'>
-        <h1 className='card-title'>登入</h1>
+        <h1 className='card-title'>{t('login')}</h1>
         {params.get('error') && (
           <div className='alert text-error'>
             {params.get('error') === 'CredentialsSignin'
-              ? '無效的電子郵件或密碼'
+              ? t('invalidEmailOrPassword')
               : params.get('error')}
           </div>
         )}
@@ -61,16 +63,16 @@ const Form = () => {
         <form onSubmit={handleSubmit(formSubmit)}>
           <div className='my-2'>
             <label className='label' htmlFor='email'>
-              電子郵件
+              {t('email')}
             </label>
             <input
               type='text'
               id='email'
               {...register('email', {
-                required: '請輸入電子郵件',
+                required: t('pleaseEnterEmail'),
                 pattern: {
                   value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
-                  message: '無效的電子郵件格式',
+                  message: t('invalidEmailFormat'),
                 },
               })}
               className='input input-bordered w-full max-w-sm'
@@ -81,13 +83,13 @@ const Form = () => {
           </div>
           <div className='my-2'>
             <label className='label' htmlFor='password'>
-              密碼
+              {t('password')}
             </label>
             <input
               type='password'
               id='password'
               {...register('password', {
-                required: '請輸入密碼',
+                required: t('pleaseEnterPassword'),
               })}
               className='input input-bordered w-full max-w-sm'
             />
@@ -104,14 +106,14 @@ const Form = () => {
               {isSubmitting && (
                 <span className='loading loading-spinner'></span>
               )}
-              登入
+              {t('login')}
             </button>
           </div>
         </form>
         <div>
-          還沒有帳號？{' '}
+          {t('dontHaveAccount')}{' '}
           <Link className='link' href={`/register?callbackUrl=${callbackUrl}`}>
-            註冊
+            {t('register')}
           </Link>
         </div>
       </div>
