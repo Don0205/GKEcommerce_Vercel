@@ -1,7 +1,9 @@
 // components/Providers.tsx
 import { SessionProvider } from 'next-auth/react';
-import { LanguageProvider } from '@/lib/LanguageContext';
+
 import { auth } from '@/lib/auth';
+import { LanguageProvider } from '@/lib/LanguageContext';
+
 import ClientProvider from './ClientProvider';
 
 const Providers = async ({ children }: { children: React.ReactNode }) => {

@@ -1,5 +1,6 @@
 //app\(front)\order-history\page.tsx
 import { Metadata } from 'next';
+
 import ClientMyOrderPage from './ClientMyOrderPage';
 
 export const metadata: Metadata = {

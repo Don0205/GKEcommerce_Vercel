@@ -1,7 +1,7 @@
 //components\ui\carousel.tsx
 'use client';
 
-import { useTranslation } from '@/lib/useTranslation';
+
 
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/lib/useTranslation';
 import { cn } from '@/lib/utils';
 
 type CarouselApi = UseEmblaCarouselType[1];
@@ -225,6 +226,7 @@ const CarouselPrevious = React.forwardRef<
     </Button>
   );
 });
+CarouselPrevious.displayName = 'CarouselPrevious'; // 新增 displayName 以修復錯誤
 
 const CarouselNext = React.forwardRef<
   HTMLButtonElement,

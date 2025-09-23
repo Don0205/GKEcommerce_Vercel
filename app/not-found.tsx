@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import React from 'react';
+
 import { useTranslation } from '@/lib/useTranslation';
 
 const NotFoundPage = () => {

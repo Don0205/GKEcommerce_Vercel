@@ -1,7 +1,6 @@
 //components\ClientProvider.tsx A
 'use client';
 
-import { useTranslation } from '@/lib/useTranslation';
 import { usePathname } from 'next/navigation';
 import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { useEffect, useState } from 'react';
@@ -10,6 +9,7 @@ import { SWRConfig } from 'swr';
 
 import { cartStore } from '@/lib/hooks/useCartStore';
 import useLayoutService from '@/lib/hooks/useLayout';
+import { useTranslation } from '@/lib/useTranslation';
 
 const ClientProvider = ({ children }: { children: React.ReactNode }) => {
   const { t } = useTranslation();

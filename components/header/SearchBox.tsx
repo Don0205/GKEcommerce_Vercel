@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next-nprogress-bar';
 import { useState } from 'react';
 import useSWR from 'swr';
+
 import { useTranslation } from '@/lib/useTranslation';
 
 export const SearchBox = () => {

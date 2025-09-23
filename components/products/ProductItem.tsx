@@ -2,7 +2,9 @@
 // components/products/ProductItem.tsx
 import Image from 'next/image';
 import Link from 'next/link';
+
 import { Product } from '@/lib/models/ProductModel';
+
 import { Rating } from './Rating';
 
 const ProductItem = async ({ 

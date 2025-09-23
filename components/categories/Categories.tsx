@@ -1,6 +1,7 @@
 //components\categories\Categories.tsx
 import Image from 'next/image';
 import Link from 'next/link';
+
 import { useTranslation } from '@/lib/useTranslation';
 
 import Overlay from './Overlay';

@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { SubmitHandler, useForm, Controller } from 'react-hook-form';
 import PhoneInput from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
-import { useTranslation } from '@/lib/useTranslation';
 
+import 'react-phone-number-input/style.css';
 import CheckoutSteps from '@/components/checkout/CheckoutSteps';
 import useCartService from '@/lib/hooks/useCartStore';
 import { ShippingAddress } from '@/lib/models/OrderModel';
+import { useTranslation } from '@/lib/useTranslation';
 
 const Form = () => {
   const { t } = useTranslation();

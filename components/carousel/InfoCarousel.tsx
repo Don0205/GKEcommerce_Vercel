@@ -1,9 +1,10 @@
 // components/carousel/InfoCarousel.tsx
 'use client'
+import { useEffect, useState } from 'react'; // 新增 useEffect 和 useState 導入
 
 import Slider from '@/components/slider/InfoSlider';
-import { delay } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
+import { delay } from '@/lib/utils';
 
 const getImages = async () => {
   await delay(2000); // 模擬加載延遲
@@ -16,9 +17,22 @@ const getImages = async () => {
   ];
 };
 
-const InfoCarousel = async () => {
+const InfoCarousel = () => { // 移除 async，讓組件成為同步函數
   const { t } = useTranslation();
-  await delay(2000); // 模擬加載延遲
+  const [isLoading, setIsLoading] = useState(true); // 新增狀態來模擬延遲
+
+  useEffect(() => {
+    const simulateDelay = async () => {
+      await delay(2000); // 將 await delay 移到 useEffect 中模擬加載延遲
+      setIsLoading(false);
+    };
+    simulateDelay();
+  }, []);
+
+  if (isLoading) {
+    return <div>載入中...</div>; // 可選：顯示載入指示器
+  }
+
   return <Slider title={t('notices')} getProducts={getImages} />;
 };
 

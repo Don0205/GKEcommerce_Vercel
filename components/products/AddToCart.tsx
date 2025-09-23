@@ -3,10 +3,10 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useTranslation } from '@/lib/useTranslation';
 
 import useCartService from '@/lib/hooks/useCartStore';
 import { OrderItem } from '@/lib/models/OrderModel';
+import { useTranslation } from '@/lib/useTranslation';
 
 const AddToCart = ({ item }: { item: OrderItem }) => {
   const { t } = useTranslation();

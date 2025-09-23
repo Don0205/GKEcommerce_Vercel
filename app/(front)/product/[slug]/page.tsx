@@ -1,28 +1,32 @@
 // app/(front)/product/[slug]/page.tsx
 // app/(front)/product/[slug]/page.tsx
 import { notFound } from 'next/navigation';
+
 import prisma from '@/lib/dbConnect';
 import { OrderItem } from '@/lib/models/OrderModel';
 import { Product } from '@/lib/models/ProductModel';
 import productService from '@/lib/services/productService';
+
 import ProductPageClient from './ProductPageClient';
 
 export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: { price?: string | undefined };
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ price?: string | undefined }>;
 }) {
-  if (params.slug === 'blind-box') {
-    const price = searchParams.price ? parseFloat(searchParams.price) : 0;
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+  if (resolvedParams.slug === 'blind-box') {
+    const price = resolvedSearchParams.price ? parseFloat(resolvedSearchParams.price) : 0;
     return {
       title: '盲盒',
       description: `這是一個盲盒產品，價格為 ${price}`,
     };
   }
 
-  const product = await productService.getBySlug(params.slug);
+  const product = await productService.getBySlug(resolvedParams.slug);
 
   if (!product) {
     return notFound();
@@ -38,15 +42,17 @@ export default async function ProductPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: { price?: string | undefined };
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ price?: string | undefined }>;
 }) {
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
   let product: Product;
   let selectedProducts: Product[] = [];
-  const isBlindBox = params.slug === 'blind-box';
+  const isBlindBox = resolvedParams.slug === 'blind-box';
 
   if (isBlindBox) {
-    const inputPrice = searchParams.price ? parseFloat(searchParams.price) : 0;
+    const inputPrice = resolvedSearchParams.price ? parseFloat(resolvedSearchParams.price) : 0;
 
     if (isNaN(inputPrice) || inputPrice <= 0) {
       return notFound();
@@ -102,7 +108,7 @@ export default async function ProductPage({
       banner: undefined,
     } as Product;
   } else {
-    const fetchedProduct = await productService.getBySlug(params.slug);
+    const fetchedProduct = await productService.getBySlug(resolvedParams.slug);
 
     if (!fetchedProduct) {
       return notFound();

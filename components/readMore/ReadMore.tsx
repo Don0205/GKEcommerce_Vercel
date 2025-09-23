@@ -3,8 +3,8 @@
 
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from '@/lib/useTranslation';
 
+import { useTranslation } from '@/lib/useTranslation';
 import { cn } from '@/lib/utils';
 
 const ReadMore = ({ children }: { children: React.ReactNode }) => {

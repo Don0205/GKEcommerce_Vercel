@@ -13,8 +13,8 @@ import prisma from '@/lib/dbConnect';
 import { OrderItem } from '@/lib/models/OrderModel';
 import { Product } from '@/lib/models/ProductModel';
 import productService from '@/lib/services/productService';
-import { convertDocToObj } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
+import { convertDocToObj } from '@/lib/utils';
 
 export async function generateMetadata({
   params,

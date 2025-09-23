@@ -3,6 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+
 import { useTranslation } from '@/lib/useTranslation';
 
 const InfoItem = ({ info }: { info: { slug: string; src: string } }) => {

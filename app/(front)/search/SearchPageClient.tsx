@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+
 import { BlindBoxSearch } from '@/components/header/BlindBoxSearch';
 import ProductItem from '@/components/products/ProductItem';
 import { Rating } from '@/components/products/Rating';

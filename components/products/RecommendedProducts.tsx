@@ -2,10 +2,10 @@
 'use client';
 
 import React from 'react';
-import { useTranslation } from '@/lib/useTranslation';
 
 import ProductItem from '@/components/products/ProductItem';
 import { Product } from '@/lib/models/ProductModel';
+import { useTranslation } from '@/lib/useTranslation';
 
 const RecommendedProducts = ({ products }: { products: Product[] }) => {
   const { t } = useTranslation();

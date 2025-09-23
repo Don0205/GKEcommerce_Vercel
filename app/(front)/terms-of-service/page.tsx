@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+
 import { useTranslation } from '@/lib/useTranslation';
 
 export default function TermsOfService() {

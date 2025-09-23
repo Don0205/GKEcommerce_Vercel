@@ -2,7 +2,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useTranslation } from '@/lib/useTranslation';
+
 
 import Carousel, { CarouselSkeleton } from '@/components/carousel/carousel';
 import InfoCarousel from '@/components/carousel/InfoCarousel';
@@ -13,6 +13,7 @@ import ProductItems, {
 } from '@/components/products/ProductItems';
 import ReadMore from '@/components/readMore/ReadMore';
 import Text from '@/components/readMore/Text';
+import { useTranslation } from '@/lib/useTranslation';
 
 const HomePage = () => {
   const { t } = useTranslation();

@@ -2,6 +2,7 @@
 'use client';
 
 import { useTranslation } from '@/lib/useTranslation';
+
 import OrderDetails from './OrderDetails';
 
 interface ClientOrderDetailsProps {

@@ -1,6 +1,7 @@
 // app\admin\products\[id]\Form.tsx
 'use client';
 
+import Image from 'next/image'; // 新增這行導入 next/image
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -11,6 +12,7 @@ import useSWRMutation from 'swr/mutation';
 
 import { Product } from '@/lib/models/ProductModel';
 import { formatId } from '@/lib/utils';
+
 
 export default function ProductEditForm({ productId }: { productId: string }) {
   const { data: product, error } = useSWR(`/api/admin/products/${productId}`);
@@ -216,10 +218,12 @@ export default function ProductEditForm({ productId }: { productId: string }) {
               <div className='mt-4'>
                 {images.map((img, index) => (
                   <div key={index} className='mb-2 flex items-center'>
-                    <img
+                    <Image
                       src={img}
                       alt={`圖片 ${index + 1}`}
-                      className='mr-2 h-20 w-20 object-cover'
+                      className='mr-2 object-cover'
+                      width={80} // 對應 Tailwind h-20 w-20 的 80px
+                      height={80}
                     />
                     <button
                       type='button'

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
+
 import { useTranslation } from '@/lib/useTranslation';
 
 type Inputs = {

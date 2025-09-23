@@ -2,20 +2,22 @@
 import prisma from '@/lib/dbConnect';
 import { Product } from '@/lib/models/ProductModel';
 import productServices from '@/lib/services/productService';
+
 import SearchPageClient from './SearchPageClient';
 
 export async function generateMetadata({
-  searchParams,
+  searchParams: searchParamsPromise,
 }: {
-  searchParams: {
-    q: string;
-    category: string;
-    price: string;
-    rating: string;
-    sort: string;
-    page: string;
-  };
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    price?: string;
+    rating?: string;
+    sort?: string;
+    page?: string;
+  }>;
 }) {
+  const searchParams = await searchParamsPromise;
   const {
     q = 'all',
     category = 'all',
@@ -43,17 +45,18 @@ export async function generateMetadata({
 }
 
 export default async function SearchPage({
-  searchParams,
+  searchParams: searchParamsPromise,
 }: {
-  searchParams: {
-    q: string;
-    category: string;
-    price: string;
-    rating: string;
-    sort: string;
-    page: string;
-  };
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    price?: string;
+    rating?: string;
+    sort?: string;
+    page?: string;
+  }>;
 }) {
+  const searchParams = await searchParamsPromise;
   const {
     q = 'all',
     category = 'all',

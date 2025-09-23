@@ -2,6 +2,7 @@
 'use client';
 
 import { LockKeyhole, Phone, Package, MousePointerClick } from 'lucide-react';
+
 import { useTranslation } from '@/lib/useTranslation';
 
 const Icons = () => {
