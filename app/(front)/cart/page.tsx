@@ -1,4 +1,4 @@
-//app\(front)\cart\page.tsx
+//app\(front)\cart\page.tsx asda
 'use client';
 
 import CartDetails from './CartDetails';
