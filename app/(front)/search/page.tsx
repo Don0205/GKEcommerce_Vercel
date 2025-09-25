@@ -101,6 +101,9 @@ export default async function SearchPage({
           description: 'Blind box product, price is your input value.',
           isFeatured: false,
           banner: undefined,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isVirtual: true,
         } as Product,
       ];
       countProducts = 1;

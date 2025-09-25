@@ -1,23 +1,25 @@
 // lib\models\ProductModel.ts
 import mongoose from 'mongoose';
 
-export type Product = {
+export interface Product {
   id: string;
   name: string;
   slug: string;
-  images: string[];  // 改為圖片陣列
-  banner?: string;
+  category: string;
+  images: string[];
   price: number;
   brand: string;
-  description: string;
-  category: string;
   rating: number;
   numReviews: number;
   countInStock: number;
-  colors?: [];
-  sizes?: [];
+  description: string;
+  isFeatured: boolean;
+  banner: string | null | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+  isVirtual: boolean;
   formet?: string;
-};
+}
 
 const productSchema = new mongoose.Schema(
   {

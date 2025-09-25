@@ -1,3 +1,4 @@
+//app\api\products\random-price\route.ts
 import { NextResponse } from 'next/server';
 
 import prisma from '@/lib/dbConnect'; // 假設您有 prisma 客戶端導入

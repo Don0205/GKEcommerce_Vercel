@@ -1,30 +1,31 @@
 //components\products\ProductItems.tsx
 'use client';
 
-import { useEffect, useState } from 'react'; // 新增 useEffect 和 useState 導入
+import { useEffect, useState } from 'react';
 
 import Slider from '@/components/slider/Slider';
+import { Product } from '@/lib/models/ProductModel';
 import productService from '@/lib/services/productService';
 import { useTranslation } from '@/lib/useTranslation';
-import { convertDocToObj, delay } from '@/lib/utils';
+import { delay } from '@/lib/utils';
 
-const ProductItems = () => { // 移除 async，讓組件成為同步函數
+const ProductItems = () => {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true); // 新增狀態來模擬延遲
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const simulateDelay = async () => {
-      await delay(4000); // 將 await delay 移到 useEffect 中模擬加載延遲
+      await delay(4000);
       setIsLoading(false);
     };
     simulateDelay();
   }, []);
 
   if (isLoading) {
-    return <div>載入中...</div>; // 可選：顯示載入指示器，或使用 Skeleton
+    return <ProductItemsSkeleton qty={8} name={t('latestProducts')} />;
   }
 
-  return <Slider title={t('latestProducts')} getProducts={productService.getLatest} />;
+  return <Slider title={t('latestProducts')} getProducts={productService.getLatest as () => Promise<Product[]>} />;
 };
 
 export default ProductItems;
