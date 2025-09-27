@@ -3,10 +3,15 @@ import { auth } from '@/lib/auth';
 import prisma from '@/lib/dbConnect';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Or replace '*' with 'https://gk-ecommerce-vercel-pxd4.vercel.app' for specificity
+  'Access-Control-Allow-Origin': 'https://gk-ecommerce-vercel-pxd4.vercel.app',  // 指定你的前端域名，如果有多个来源，可以动态从 req.headers.origin 获取并验证
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Credentials': 'true',  // 支持凭证（如 Cookie）
 };
+
+export async function OPTIONS() {
+  return new Response(null, { headers: corsHeaders });
+}
 
 export const GET = auth(async (req: any) => {
   if (!req.auth) {
@@ -23,7 +28,3 @@ export const GET = auth(async (req: any) => {
     return Response.json({ message: 'Error fetching products' }, { status: 500, headers: corsHeaders });
   }
 });
-
-export async function OPTIONS() {
-  return new Response(null, { headers: corsHeaders });
-}
