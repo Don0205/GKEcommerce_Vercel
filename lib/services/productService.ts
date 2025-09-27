@@ -6,7 +6,7 @@ import { Product } from '@/lib/models/ProductModel';
 
 export const revalidate = 3600;
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 const isServer = typeof window === 'undefined';
 
 const fetchFromApi = cache(async (endpoint: string, params?: any) => {
