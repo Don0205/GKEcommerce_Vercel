@@ -20,7 +20,8 @@ const fetchFromApi = cache(async (endpoint: string, params?: any) => {
     });
     url += `?${searchParams.toString()}`;
   }
-  const res = await fetch(url);
+  const res = await fetch(url,);
+  
   if (!res.ok) {
     throw new Error(`API request failed: ${res.statusText}`);
   }
