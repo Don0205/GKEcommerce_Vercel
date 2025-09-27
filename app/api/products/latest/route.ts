@@ -14,9 +14,6 @@ export async function OPTIONS() {
 }
 
 export const GET = auth(async (req: any) => {
-  if (!req.auth) {
-    return Response.json({ message: 'unauthorized' }, { status: 401, headers: corsHeaders });
-  }
   try {
     const products = await prisma.product.findMany({
       orderBy: { createdAt: 'desc' },
