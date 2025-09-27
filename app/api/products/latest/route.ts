@@ -13,15 +13,15 @@ export async function OPTIONS() {
   return new Response(null, { headers: corsHeaders });
 }
 
-export const GET = auth(async (req: any) => {
+export const GET = async (req: any) => {  // 移除 auth 包装器
   try {
     const products = await prisma.product.findMany({
       orderBy: { createdAt: 'desc' },
       take: 8,
     });
-    return Response.json(products, { headers: corsHeaders });
+    return Response.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
-    return Response.json({ message: 'Error fetching products' }, { status: 500, headers: corsHeaders });
+    return Response.json({ message: 'Error fetching products' }, { status: 500 });
   }
-});
+};

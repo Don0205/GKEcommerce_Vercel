@@ -1,4 +1,4 @@
-//lib\services\productService.ts
+// lib\services\productService.ts
 import { Prisma } from '@prisma/client';
 import { cache } from 'react';
 
@@ -6,7 +6,7 @@ import { Product } from '@/lib/models/ProductModel';
 
 export const revalidate = 3600;
 
-const API_BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+const API_BASE_URL = '';  // 改为空字符串，使用相对路径
 const isServer = typeof window === 'undefined';
 
 const fetchFromApi = cache(async (endpoint: string, params?: any) => {
@@ -20,8 +20,8 @@ const fetchFromApi = cache(async (endpoint: string, params?: any) => {
     });
     url += `?${searchParams.toString()}`;
   }
-  const res = await fetch(url,);
-  
+  const res = await fetch(url, { credentials: 'include' });  // 添加 credentials 以携带 Cookie（如果需要 auth）
+
   if (!res.ok) {
     throw new Error(`API request failed: ${res.statusText}`);
   }
