@@ -1,5 +1,5 @@
-// components/Sidebar.tsx
-'use client';
+// components/Sidebar.tsx A
+'use client'; 
 
 import Link from 'next/link';
 import useSWR from 'swr';
