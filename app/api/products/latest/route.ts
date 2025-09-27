@@ -1,17 +1,19 @@
-//app\api\products\latest\route.ts
-import { NextResponse } from 'next/server';
-
+// app\api\products\latest\route.ts
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/dbConnect';
 
-export async function GET() {
+export const GET = auth(async (req: any) => {
+  if (!req.auth) {
+    return Response.json({ message: 'unauthorized' }, { status: 401 });
+  }
   try {
     const products = await prisma.product.findMany({
       orderBy: { createdAt: 'desc' },
       take: 8,
     });
-    return NextResponse.json(products);
+    return Response.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
-    return NextResponse.json({ message: 'Error fetching products' }, { status: 500 });
+    return Response.json({ message: 'Error fetching products' }, { status: 500 });
   }
-}
+});
